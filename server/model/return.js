@@ -1,0 +1,36 @@
+import mongoose,{Schema} from 'mongoose'
+const returnSchema = new mongoose.Schema({
+
+    sale: {
+        type: Schema.Types.ObjectId,
+        ref: 'Sale',
+        required: true
+    },
+
+    product: {
+        type: Schema.Types.ObjectId,
+        ref: 'Product',
+        required: true
+    },
+
+    quantityReturned: {
+        type: Number,
+        required: true,
+        min: [1, 'Returned quantity must be at least 1'],
+    },
+    reason: {
+        type: String,
+        trim: true,
+        default: ''
+    },
+
+    status: {
+        type: String,
+        enum: ['Completed', 'Rejected'],
+        default: 'Completed',
+    },
+},
+    { timestamps: true }
+);
+
+export default mongoose.model('Return_items', returnSchema);
