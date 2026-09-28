@@ -1,0 +1,479 @@
+.billing-page {
+  width: 100%;
+  max-width: 1400px;
+  margin: 0 auto;
+}
+
+/* ================================
+   HEADER
+================================ */
+
+.billing-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 22px;
+}
+
+.billing-header h2 {
+  margin: 0;
+  color: #111827;
+  font-size: 28px;
+  font-weight: 700;
+}
+
+.billing-header p {
+  margin-top: 6px;
+  color: #64748b;
+  font-size: 14px;
+}
+
+.invoice-preview {
+  padding: 10px 16px;
+  border: 1px solid #e2e8f0;
+  background: #ffffff;
+  border-radius: 9px;
+  text-align: right;
+}
+
+.invoice-preview span {
+  display: block;
+  color: #94a3b8;
+  font-size: 11px;
+}
+
+.invoice-preview strong {
+  display: block;
+  margin-top: 3px;
+  color: #4f46e5;
+  font-size: 14px;
+}
+
+/* ================================
+   CARD
+================================ */
+
+.billing-card {
+  margin-bottom: 20px;
+  padding: 22px;
+  background: #ffffff;
+  border: 1px solid #e5e7eb;
+  border-radius: 12px;
+  box-shadow: 0 2px 6px rgba(15, 23, 42, 0.03);
+}
+
+/* ================================
+   SECTION TITLE
+================================ */
+
+.section-title {
+  display: flex;
+  align-items: center;
+  gap: 13px;
+  margin-bottom: 22px;
+}
+
+.section-number {
+  width: 32px;
+  height: 32px;
+  flex-shrink: 0;
+  border-radius: 8px;
+  background: #eef2ff;
+  color: #4f46e5;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.section-title h3 {
+  margin: 0;
+  color: #1e293b;
+  font-size: 16px;
+}
+
+.section-title p {
+  margin-top: 4px;
+  color: #94a3b8;
+  font-size: 12px;
+}
+
+/* ================================
+   FORMS
+================================ */
+
+.form-grid {
+  display: grid;
+  grid-template-columns: minmax(250px, 1fr) 1fr;
+  gap: 20px;
+  align-items: end;
+}
+
+.form-group {
+  display: flex;
+  flex-direction: column;
+  gap: 7px;
+}
+
+.form-group label {
+  color: #475569;
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.form-group select,
+.form-group input {
+  width: 100%;
+  height: 42px;
+  padding: 0 12px;
+  box-sizing: border-box;
+  border: 1px solid #dbe1e8;
+  border-radius: 8px;
+  background: #ffffff;
+  color: #334155;
+  outline: none;
+  font-size: 13px;
+  transition: 0.2s ease;
+}
+
+.form-group select:focus,
+.form-group input:focus {
+  border-color: #6366f1;
+  box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.1);
+}
+
+/* ================================
+   CUSTOMER PREVIEW
+================================ */
+
+.customer-preview {
+  min-height: 42px;
+  padding: 8px 13px;
+  box-sizing: border-box;
+  border: 1px solid #e0e7ff;
+  border-radius: 8px;
+  background: #f8faff;
+}
+
+.customer-preview span {
+  display: block;
+  color: #94a3b8;
+  font-size: 10px;
+}
+
+.customer-preview strong {
+  display: inline-block;
+  margin-right: 9px;
+  color: #334155;
+  font-size: 13px;
+}
+
+.customer-preview small {
+  color: #64748b;
+  font-size: 11px;
+}
+
+/* ================================
+   PRODUCT FORM
+================================ */
+
+.product-form {
+  display: grid;
+  grid-template-columns: minmax(250px, 1fr) 120px 140px 150px;
+  gap: 14px;
+  align-items: end;
+}
+
+.stock-info {
+  height: 42px;
+  padding: 0 12px;
+  box-sizing: border-box;
+  border: 1px solid #e2e8f0;
+  border-radius: 8px;
+  background: #f8fafc;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+
+.stock-info span {
+  color: #94a3b8;
+  font-size: 10px;
+}
+
+.stock-info strong {
+  color: #334155;
+  font-size: 13px;
+}
+
+.add-product-button {
+  height: 42px;
+  border: none;
+  border-radius: 8px;
+  background: #4f46e5;
+  color: white;
+  cursor: pointer;
+  font-size: 13px;
+  font-weight: 600;
+  transition: 0.2s ease;
+}
+
+.add-product-button:hover {
+  background: #4338ca;
+}
+
+/* ================================
+   CART
+================================ */
+
+.cart-empty {
+  padding: 40px 20px;
+  text-align: center;
+  border: 1px dashed #dbe1e8;
+  border-radius: 9px;
+}
+
+.cart-empty-icon {
+  width: 52px;
+  height: 52px;
+  margin: 0 auto 12px;
+  border-radius: 50%;
+  background: #f1f5f9;
+  color: #94a3b8;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.cart-empty h4 {
+  margin: 0;
+  color: #334155;
+  font-size: 14px;
+}
+
+.cart-empty p {
+  margin-top: 5px;
+  color: #94a3b8;
+  font-size: 12px;
+}
+
+.cart-table-wrapper {
+  overflow-x: auto;
+}
+
+.cart-table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.cart-table th {
+  padding: 12px;
+  background: #f8fafc;
+  color: #64748b;
+  text-align: left;
+  font-size: 11px;
+  font-weight: 600;
+}
+
+.cart-table td {
+  padding: 13px 12px;
+  border-bottom: 1px solid #eef2f6;
+  color: #475569;
+  font-size: 12px;
+}
+
+.product-name {
+  color: #1e293b;
+  font-weight: 600;
+}
+
+.cart-table td small {
+  color: #94a3b8;
+  font-size: 10px;
+}
+
+.cart-quantity {
+  width: 65px;
+  height: 34px;
+  padding: 0 8px;
+  border: 1px solid #dbe1e8;
+  border-radius: 6px;
+  outline: none;
+}
+
+.item-total {
+  color: #111827 !important;
+  font-weight: 700;
+}
+
+.remove-button {
+  width: 30px;
+  height: 30px;
+  border: none;
+  border-radius: 6px;
+  background: #fff1f2;
+  color: #e11d48;
+  cursor: pointer;
+  font-size: 18px;
+}
+
+.remove-button:hover {
+  background: #ffe4e6;
+}
+
+/* ================================
+   BOTTOM GRID
+================================ */
+
+.billing-bottom {
+  display: grid;
+  grid-template-columns: minmax(0, 1.4fr) minmax(300px, 0.8fr);
+  gap: 20px;
+}
+
+/* ================================
+   CALCULATION
+================================ */
+
+.calculation-form {
+  display: grid;
+  gap: 15px;
+}
+
+.discount-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 15px;
+}
+
+.bill-summary {
+  margin-top: 22px;
+  padding-top: 16px;
+  border-top: 1px solid #edf0f4;
+}
+
+.bill-summary > div {
+  display: flex;
+  justify-content: space-between;
+  padding: 7px 0;
+  color: #64748b;
+  font-size: 13px;
+}
+
+.bill-summary strong {
+  color: #334155;
+}
+
+.discount-text {
+  color: #e11d48 !important;
+}
+
+.grand-total-row {
+  margin-top: 8px;
+  padding-top: 15px !important;
+  border-top: 1px solid #e2e8f0;
+  color: #111827 !important;
+  font-size: 16px !important;
+  font-weight: 700;
+}
+
+.grand-total-row strong {
+  color: #4f46e5;
+  font-size: 20px;
+}
+
+/* ================================
+   PAYMENT
+================================ */
+
+.payment-card {
+  display: flex;
+  flex-direction: column;
+}
+
+.payment-card .form-group {
+  margin-bottom: 15px;
+}
+
+.payment-total {
+  margin-top: auto;
+  margin-bottom: 15px;
+  padding: 15px;
+  border-radius: 9px;
+  background: #f8faff;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.payment-total span {
+  color: #64748b;
+  font-size: 12px;
+}
+
+.payment-total strong {
+  color: #4f46e5;
+  font-size: 20px;
+}
+
+.create-sale-button {
+  width: 100%;
+  height: 45px;
+  border: none;
+  border-radius: 8px;
+  background: #4f46e5;
+  color: #ffffff;
+  cursor: pointer;
+  font-size: 13px;
+  font-weight: 700;
+  transition: 0.2s ease;
+}
+
+.create-sale-button:hover {
+  background: #4338ca;
+  transform: translateY(-1px);
+}
+
+/* ================================
+   RESPONSIVE
+================================ */
+
+@media (max-width: 1100px) {
+  .product-form {
+    grid-template-columns: 1fr 120px;
+  }
+
+  .stock-info,
+  .add-product-button {
+    width: 100%;
+  }
+
+  .billing-bottom {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 700px) {
+  .billing-header {
+    align-items: flex-start;
+    flex-direction: column;
+    gap: 15px;
+  }
+
+  .form-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .product-form {
+    grid-template-columns: 1fr;
+  }
+
+  .discount-row {
+    grid-template-columns: 1fr;
+  }
+
+  .billing-card {
+    padding: 16px;
+  }
+}
