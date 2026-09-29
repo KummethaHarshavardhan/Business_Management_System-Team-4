@@ -4,6 +4,7 @@ import Invoice from '../model/invoice.js'
 import { generateInvoiceNumber } from '../utils/generateInvoiceNumber.js'
 import { round2 } from '../utils/calculateBill.js'
 import { getProduct } from '../services/stockService.js'
+import { getBusinessDetails } from '../services/businessService.js'
 
 // POST /api/invoices  body: { saleId }
 // Creates an invoice (snapshot) from an existing sale.
@@ -26,13 +27,8 @@ export const createInvoice = async (req, res) => {
       return res.status(409).json({ message: 'Invoice already exists for this sale', invoice: existing });
     }
 
-    // -- i want api/data/field from team1 - business details: name, address, gstin, phone
-    const businessDetails = {
-      name: 'PENDING TEAM 1 DATA',
-      address: '',
-      gstin: '',
-      phone: '',
-    }; // temporary placeholder
+ 
+    const businessDetails = await getBusinessDetails(req.headers.authorization);
 
     // -- i want api/data/field from team3 - customer by id (sale.customer): name, phone, address
     const customerDetails = {
