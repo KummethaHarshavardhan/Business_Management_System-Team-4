@@ -1,8 +1,6 @@
 import mongoose from 'mongoose'
 import { getProduct } from '../services/stockService.js'
 
-// Runs before a sale is created. Blocks the request if any item exceeds stock.
-// Saves fetched products in req.products (keyed by product id) for the next handler.
 const checkStock = async (req, res, next) => {
   try {
     const { items } = req.body;
