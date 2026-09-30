@@ -1,29 +1,29 @@
-import { useMemo, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
-import './NewSale.css';
+import { useMemo, useState } from "react";
+import { useNavigate } from "react-router-dom";
+import "./NewSale.css";
 
 const products = [
   {
     id: 1,
-    name: 'Wireless Keyboard',
+    name: "Wireless Keyboard",
     price: 1500,
     stock: 25,
   },
   {
     id: 2,
-    name: 'USB Mouse',
+    name: "USB Mouse",
     price: 800,
     stock: 40,
   },
   {
     id: 3,
-    name: 'Monitor',
+    name: "Monitor",
     price: 12500,
     stock: 10,
   },
   {
     id: 4,
-    name: 'Laptop Stand',
+    name: "Laptop Stand",
     price: 2200,
     stock: 18,
   },
@@ -32,83 +32,62 @@ const products = [
 const customers = [
   {
     id: 1,
-    name: 'Walk-in Customer',
-    phone: '9876543210',
+    name: "Walk-in Customer",
+    phone: "9876543210",
   },
   {
     id: 2,
-    name: 'Rahul Kumar',
-    phone: '9123456780',
+    name: "Rahul Kumar",
+    phone: "9123456780",
   },
   {
     id: 3,
-    name: 'Priya Sharma',
-    phone: '9988776655',
+    name: "Priya Sharma",
+    phone: "9988776655",
   },
 ];
 
 function NewSale() {
   const navigate = useNavigate();
 
-  /* =========================
-     CUSTOMER & PAYMENT
-  ========================= */
-
-  const [customerId, setCustomerId] = useState('');
-
-  const [paymentMethod, setPaymentMethod] = useState('Cash');
-
-  const [paymentStatus, setPaymentStatus] = useState('Paid');
-
-  /* =========================
-     DISCOUNT & TAX
-  ========================= */
+  const [customerId, setCustomerId] = useState("");
+  const [paymentMethod, setPaymentMethod] = useState("Cash");
+  const [paymentStatus, setPaymentStatus] = useState("Paid");
 
   const [discountType, setDiscountType] =
-    useState('percentage');
+    useState("percentage");
 
   const [discountValue, setDiscountValue] =
     useState(0);
 
-  const [taxRate, setTaxRate] =
-    useState(18);
-
-  /* =========================
-     SALE ITEMS
-  ========================= */
+  const [taxRate, setTaxRate] = useState(18);
 
   const [items, setItems] = useState([
     {
       id: Date.now(),
-      productId: '',
+      productId: "",
       quantity: 1,
       price: 0,
     },
   ]);
 
-  /* =========================
-     FORMAT CURRENCY
-  ========================= */
-
   const formatCurrency = (amount) => {
-    return `₹${Number(amount).toLocaleString('en-IN', {
+    const safeAmount = Number(amount);
+
+    if (!Number.isFinite(safeAmount)) {
+      return "₹0.00";
+    }
+
+    return `₹${safeAmount.toLocaleString("en-IN", {
       minimumFractionDigits: 2,
       maximumFractionDigits: 2,
     })}`;
   };
 
-  /* =========================
-     SELECTED CUSTOMER
-  ========================= */
-
   const selectedCustomer = customers.find(
     (customer) =>
       String(customer.id) === String(customerId)
   );
-
-  /* =========================
-     SUBTOTAL
-  ========================= */
 
   const subtotal = useMemo(() => {
     return items.reduce((total, item) => {
@@ -120,102 +99,75 @@ function NewSale() {
     }, 0);
   }, [items]);
 
-  /* =========================
-     DISCOUNT
-  ========================= */
-
   const discountAmount = useMemo(() => {
     const value = Number(discountValue || 0);
 
-    if (discountType === 'percentage') {
+    if (discountType === "percentage") {
       return Math.min(
         subtotal,
-        (subtotal * value) / 100
+        (subtotal * Math.min(100, Math.max(0, value))) /
+          100
       );
     }
 
-    return Math.min(subtotal, value);
-  }, [
-    subtotal,
-    discountType,
-    discountValue,
-  ]);
-
-  /* =========================
-     TAXABLE AMOUNT
-  ========================= */
+    return Math.min(
+      subtotal,
+      Math.max(0, value)
+    );
+  }, [subtotal, discountType, discountValue]);
 
   const taxableAmount = Math.max(
     0,
     subtotal - discountAmount
   );
 
-  /* =========================
-     TAX
-  ========================= */
-
   const taxAmount = useMemo(() => {
+    const safeTaxRate = Math.max(
+      0,
+      Number(taxRate || 0)
+    );
+
     return (
-      (taxableAmount *
-        Number(taxRate || 0)) /
-      100
+      (taxableAmount * safeTaxRate) / 100
     );
   }, [taxableAmount, taxRate]);
-
-  /* =========================
-     GRAND TOTAL
-  ========================= */
 
   const grandTotal =
     taxableAmount + taxAmount;
 
-  /* =========================
-     ADD ITEM
-  ========================= */
-
   const addItem = () => {
-    setItems([
-      ...items,
+    setItems((currentItems) => [
+      ...currentItems,
       {
-        id: Date.now(),
-        productId: '',
+        id: Date.now() + Math.random(),
+        productId: "",
         quantity: 1,
         price: 0,
       },
     ]);
   };
 
-  /* =========================
-     REMOVE ITEM
-  ========================= */
-
   const removeItem = (id) => {
     if (items.length === 1) {
       return;
     }
 
-    setItems(
-      items.filter((item) => item.id !== id)
+    setItems((currentItems) =>
+      currentItems.filter(
+        (item) => item.id !== id
+      )
     );
   };
 
-  /* =========================
-     UPDATE PRODUCT
-  ========================= */
+  const updateProduct = (id, productId) => {
+    const selectedProduct = products.find(
+      (product) =>
+        String(product.id) ===
+        String(productId)
+    );
 
-  const updateProduct = (
-    id,
-    productId
-  ) => {
-    const selectedProduct =
-      products.find(
-        (product) =>
-          String(product.id) ===
-          String(productId)
-      );
-
-    setItems(
-      items.map((item) =>
+    setItems((currentItems) =>
+      currentItems.map((item) =>
         item.id === id
           ? {
               ...item,
@@ -223,37 +175,42 @@ function NewSale() {
               price: selectedProduct
                 ? selectedProduct.price
                 : 0,
+              quantity: selectedProduct
+                ? Math.min(
+                    Math.max(
+                      1,
+                      Number(item.quantity) || 1
+                    ),
+                    selectedProduct.stock
+                  )
+                : 1,
             }
           : item
       )
     );
   };
 
-  /* =========================
-     UPDATE QUANTITY
-  ========================= */
-
-  const updateQuantity = (
-    id,
-    quantity
-  ) => {
+  const updateQuantity = (id, quantity) => {
     const currentItem = items.find(
       (item) => item.id === id
     );
 
-    const selectedProduct =
-      products.find(
-        (product) =>
-          String(product.id) ===
-          String(currentItem?.productId)
-      );
+    const selectedProduct = products.find(
+      (product) =>
+        String(product.id) ===
+        String(currentItem?.productId)
+    );
 
     let newQuantity =
-      Number(quantity) || 1;
+      Number(quantity);
+
+    if (!Number.isFinite(newQuantity)) {
+      newQuantity = 1;
+    }
 
     newQuantity = Math.max(
       1,
-      newQuantity
+      Math.floor(newQuantity)
     );
 
     if (selectedProduct) {
@@ -263,8 +220,8 @@ function NewSale() {
       );
     }
 
-    setItems(
-      items.map((item) =>
+    setItems((currentItems) =>
+      currentItems.map((item) =>
         item.id === id
           ? {
               ...item,
@@ -275,71 +232,109 @@ function NewSale() {
     );
   };
 
-  /* =========================
-     UPDATE PRICE
-  ========================= */
+  const updatePrice = (id, price) => {
+    let newPrice = Number(price);
 
-  const updatePrice = (
-    id,
-    price
-  ) => {
-    setItems(
-      items.map((item) =>
+    if (!Number.isFinite(newPrice)) {
+      newPrice = 0;
+    }
+
+    newPrice = Math.max(0, newPrice);
+
+    setItems((currentItems) =>
+      currentItems.map((item) =>
         item.id === id
           ? {
               ...item,
-              price: Math.max(
-                0,
-                Number(price) || 0
-              ),
+              price: newPrice,
             }
           : item
       )
     );
   };
 
-  /* =========================
-     GENERATE SALE
-  ========================= */
+  const handleDiscountTypeChange = (type) => {
+    setDiscountType(type);
+    setDiscountValue(0);
+  };
+
+  const handleDiscountValueChange = (value) => {
+    let numericValue = Number(value);
+
+    if (!Number.isFinite(numericValue)) {
+      numericValue = 0;
+    }
+
+    numericValue = Math.max(
+      0,
+      numericValue
+    );
+
+    if (discountType === "percentage") {
+      numericValue = Math.min(
+        100,
+        numericValue
+      );
+    }
+
+    setDiscountValue(numericValue);
+  };
+
+  const handleTaxChange = (value) => {
+    let numericValue = Number(value);
+
+    if (!Number.isFinite(numericValue)) {
+      numericValue = 0;
+    }
+
+    setTaxRate(
+      Math.max(0, numericValue)
+    );
+  };
 
   const handleCreateSale = () => {
     if (!customerId) {
-      alert(
-        'Please select a customer.'
-      );
+      alert("Please select a customer.");
       return;
     }
 
-    const hasInvalidProduct =
-      items.some(
-        (item) => !item.productId
-      );
+    const hasInvalidProduct = items.some(
+      (item) => !item.productId
+    );
 
     if (hasInvalidProduct) {
       alert(
-        'Please select a product for every sale item.'
+        "Please select a product for every sale item."
       );
       return;
     }
 
-    const hasInvalidQuantity =
-      items.some((item) => {
-        const product =
-          products.find(
-            (p) =>
-              String(p.id) ===
-              String(item.productId)
-          );
+    const hasInvalidQuantity = items.some(
+      (item) => {
+        const product = products.find(
+          (p) =>
+            String(p.id) ===
+            String(item.productId)
+        );
 
         return (
-          product &&
+          !product ||
+          item.quantity < 1 ||
           item.quantity > product.stock
         );
-      });
+      }
+    );
 
     if (hasInvalidQuantity) {
       alert(
-        'One or more products exceed available stock.'
+        "Please check the quantity and available stock."
+      );
+      return;
+    }
+
+    if (subtotal <= 0) {
+      alert(
+        "Please add at least one valid product."
       );
       return;
     }
@@ -350,18 +345,15 @@ function NewSale() {
       )}`
     );
 
-    navigate('/sales');
+    navigate("/sales");
   };
 
   return (
     <div className="new-sale-page">
 
-      {/* =========================
-          PAGE HEADER
-      ========================= */}
+      {/* PAGE HEADER */}
 
       <div className="new-sale-header">
-
         <div>
           <h1>New Sale</h1>
 
@@ -372,49 +364,38 @@ function NewSale() {
         </div>
 
         <button
+          type="button"
           className="back-btn"
-          onClick={() =>
-            navigate('/sales')
-          }
+          onClick={() => navigate("/sales")}
         >
           ← Back to Sales
         </button>
-
       </div>
+
+      {/* MAIN LAYOUT */}
 
       <div className="sale-form-layout">
 
-        {/* =========================
-            LEFT SIDE
-        ========================= */}
+        {/* LEFT SIDE */}
 
         <div className="sale-form-main">
 
           {/* CUSTOMER DETAILS */}
 
           <div className="form-card">
-
             <div className="card-title">
+              <h2>Customer Details</h2>
 
-              <div>
-                <h2>
-                  Customer Details
-                </h2>
-
-                <p>
-                  Select the customer
-                  for this sale.
-                </p>
-              </div>
-
+              <p>
+                Select the customer for this sale.
+              </p>
             </div>
 
             <div className="form-grid">
 
               <div className="form-group">
-
                 <label>
-                  Customer *
+                  Customer <span>*</span>
                 </label>
 
                 <select
@@ -425,7 +406,6 @@ function NewSale() {
                     )
                   }
                 >
-
                   <option value="">
                     Select Customer
                   </option>
@@ -440,13 +420,10 @@ function NewSale() {
                       </option>
                     )
                   )}
-
                 </select>
-
               </div>
 
               <div className="customer-preview">
-
                 <span>
                   Customer Phone
                 </span>
@@ -454,301 +431,224 @@ function NewSale() {
                 <strong>
                   {selectedCustomer
                     ? selectedCustomer.phone
-                    : '—'}
+                    : "—"}
                 </strong>
-
               </div>
-
             </div>
-
           </div>
 
-          {/* =========================
-              SALE ITEMS
-          ========================= */}
+          {/* SALE ITEMS */}
 
           <div className="form-card">
 
             <div className="card-header-row">
-
               <div>
-                <h2>
-                  Sale Items
-                </h2>
+                <h2>Sale Items</h2>
 
                 <p>
-                  Add products and
-                  quantities to the sale.
+                  Add products and quantities
+                  to the sale.
                 </p>
               </div>
 
               <button
+                type="button"
                 className="add-item-btn"
                 onClick={addItem}
               >
                 + Add Item
               </button>
-
             </div>
 
             <div className="items-table-wrapper">
-
               <table className="items-table">
 
                 <thead>
                   <tr>
-                    <th>
-                      PRODUCT
-                    </th>
-
-                    <th>
-                      AVAILABLE
-                    </th>
-
-                    <th>
-                      QUANTITY
-                    </th>
-
-                    <th>
-                      PRICE
-                    </th>
-
-                    <th>
-                      TOTAL
-                    </th>
-
+                    <th>PRODUCT</th>
+                    <th>AVAILABLE</th>
+                    <th>QUANTITY</th>
+                    <th>PRICE</th>
+                    <th>TOTAL</th>
                     <th></th>
                   </tr>
                 </thead>
 
                 <tbody>
+                  {items.map((item) => {
+                    const selectedProduct =
+                      products.find(
+                        (product) =>
+                          String(product.id) ===
+                          String(
+                            item.productId
+                          )
+                      );
 
-                  {items.map(
-                    (item) => {
+                    const itemTotal =
+                      Number(
+                        item.quantity || 0
+                      ) *
+                      Number(
+                        item.price || 0
+                      );
 
-                      const selectedProduct =
-                        products.find(
-                          (product) =>
-                            String(
-                              product.id
-                            ) ===
-                            String(
+                    return (
+                      <tr key={item.id}>
+
+                        <td>
+                          <select
+                            value={
                               item.productId
-                            )
-                        );
+                            }
+                            onChange={(e) =>
+                              updateProduct(
+                                item.id,
+                                e.target.value
+                              )
+                            }
+                            aria-label="Select product"
+                          >
+                            <option value="">
+                              Select Product
+                            </option>
 
-                      return (
-                        <tr
-                          key={item.id}
-                        >
+                            {products.map(
+                              (product) => (
+                                <option
+                                  key={
+                                    product.id
+                                  }
+                                  value={
+                                    product.id
+                                  }
+                                >
+                                  {product.name}
+                                </option>
+                              )
+                            )}
+                          </select>
+                        </td>
 
-                          <td>
+                        <td>
+                          <span className="stock-badge">
+                            {selectedProduct
+                              ? `${selectedProduct.stock} available`
+                              : "—"}
+                          </span>
+                        </td>
 
-                            <select
-                              value={
-                                item.productId
-                              }
-                              onChange={(
-                                e
-                              ) =>
-                                updateProduct(
-                                  item.id,
-                                  e.target.value
-                                )
-                              }
-                            >
+                        <td>
+                          <input
+                            type="number"
+                            min="1"
+                            max={
+                              selectedProduct
+                                ?.stock
+                            }
+                            value={
+                              item.quantity
+                            }
+                            onChange={(e) =>
+                              updateQuantity(
+                                item.id,
+                                e.target.value
+                              )
+                            }
+                            aria-label="Quantity"
+                          />
+                        </td>
 
-                              <option value="">
-                                Select Product
-                              </option>
-
-                              {products.map(
-                                (
-                                  product
-                                ) => (
-                                  <option
-                                    key={
-                                      product.id
-                                    }
-                                    value={
-                                      product.id
-                                    }
-                                  >
-                                    {
-                                      product.name
-                                    }
-                                  </option>
-                                )
-                              )}
-
-                            </select>
-
-                          </td>
-
-                          <td>
-
-                            <span className="stock-badge">
-
-                              {selectedProduct
-                                ? `${selectedProduct.stock} available`
-                                : '—'}
-
-                            </span>
-
-                          </td>
-
-                          <td>
+                        <td>
+                          <div className="price-input">
+                            <span>₹</span>
 
                             <input
                               type="number"
-                              min="1"
-                              max={
-                                selectedProduct
-                                  ?.stock ||
-                                undefined
-                              }
+                              min="0"
                               value={
-                                item.quantity
+                                item.price
                               }
-                              onChange={(
-                                e
-                              ) =>
-                                updateQuantity(
+                              onChange={(e) =>
+                                updatePrice(
                                   item.id,
                                   e.target.value
                                 )
                               }
+                              aria-label="Price"
                             />
+                          </div>
+                        </td>
 
-                          </td>
+                        <td>
+                          <strong>
+                            {formatCurrency(
+                              itemTotal
+                            )}
+                          </strong>
+                        </td>
 
-                          <td>
+                        <td>
+                          <button
+                            type="button"
+                            className="remove-item-btn"
+                            onClick={() =>
+                              removeItem(
+                                item.id
+                              )
+                            }
+                            disabled={
+                              items.length ===
+                              1
+                            }
+                            aria-label="Remove item"
+                          >
+                            ×
+                          </button>
+                        </td>
 
-                            <div className="price-input">
-
-                              <span>
-                                ₹
-                              </span>
-
-                              <input
-                                type="number"
-                                min="0"
-                                value={
-                                  item.price
-                                }
-                                onChange={(
-                                  e
-                                ) =>
-                                  updatePrice(
-                                    item.id,
-                                    e.target.value
-                                  )
-                                }
-                              />
-
-                            </div>
-
-                          </td>
-
-                          <td>
-
-                            <strong>
-                              {formatCurrency(
-                                Number(
-                                  item.quantity ||
-                                    0
-                                ) *
-                                  Number(
-                                    item.price ||
-                                      0
-                                  )
-                              )}
-                            </strong>
-
-                          </td>
-
-                          <td>
-
-                            <button
-                              className="remove-item-btn"
-                              onClick={() =>
-                                removeItem(
-                                  item.id
-                                )
-                              }
-                              disabled={
-                                items.length ===
-                                1
-                              }
-                            >
-                              ×
-                            </button>
-
-                          </td>
-
-                        </tr>
-                      );
-                    }
-                  )}
-
+                      </tr>
+                    );
+                  })}
                 </tbody>
-
               </table>
-
             </div>
-
           </div>
 
-          {/* =========================
-              DISCOUNT & TAX
-          ========================= */}
+          {/* DISCOUNT & TAX */}
 
           <div className="form-card discount-tax-card">
 
-            <div className="card-title">
-
-              <div>
-                <h2>
-                  Discount & Tax
-                </h2>
+            <div className="card-title-row">
+              <div className="card-title">
+                <h2>Discount & Tax</h2>
 
                 <p>
-                  Apply discounts and
-                  taxes to this sale.
+                  Apply discounts and taxes
+                  to this sale.
                 </p>
               </div>
 
               <div className="section-badge">
                 Pricing
               </div>
-
             </div>
 
             <div className="form-grid-three">
 
-              {/* DISCOUNT TYPE */}
-
               <div className="form-group">
-
                 <label>
                   Discount Type
                 </label>
 
                 <select
-                  value={
-                    discountType
-                  }
-                  onChange={(e) => {
-                    setDiscountType(
+                  value={discountType}
+                  onChange={(e) =>
+                    handleDiscountTypeChange(
                       e.target.value
-                    );
-
-                    setDiscountValue(
-                      0
-                    );
-                  }}
+                    )
+                  }
                 >
-
                   <option value="percentage">
                     Percentage (%)
                   </option>
@@ -756,356 +656,243 @@ function NewSale() {
                   <option value="fixed">
                     Fixed Amount (₹)
                   </option>
-
                 </select>
 
                 <small>
-                  Choose how the
-                  discount should
-                  be applied.
+                  Choose how the discount
+                  should be applied.
                 </small>
-
               </div>
 
-              {/* DISCOUNT VALUE */}
-
               <div className="form-group">
-
                 <label>
                   Discount Value
                 </label>
 
                 <div className="input-with-suffix">
-
                   <input
                     type="number"
                     min="0"
                     max={
                       discountType ===
-                      'percentage'
+                      "percentage"
                         ? 100
                         : undefined
                     }
-                    value={
-                      discountValue
-                    }
-                    onChange={(e) => {
-
-                      const value =
-                        Number(
-                          e.target
-                            .value
-                        ) || 0;
-
-                      if (
-                        discountType ===
-                        'percentage'
-                      ) {
-
-                        setDiscountValue(
-                          Math.min(
-                            100,
-                            Math.max(
-                              0,
-                              value
-                            )
-                          )
-                        );
-
-                      } else {
-
-                        setDiscountValue(
-                          Math.max(
-                            0,
-                            value
-                          )
-                        );
-
-                      }
-
-                    }}
-                    placeholder={
-                      discountType ===
-                      'percentage'
-                        ? '0'
-                        : '0.00'
+                    value={discountValue}
+                    onChange={(e) =>
+                      handleDiscountValueChange(
+                        e.target.value
+                      )
                     }
                   />
 
                   <span>
                     {discountType ===
-                    'percentage'
-                      ? '%'
-                      : '₹'}
+                    "percentage"
+                      ? "%"
+                      : "₹"}
                   </span>
-
                 </div>
 
                 <small>
                   {discountType ===
-                  'percentage'
-                    ? 'Maximum discount: 100%'
-                    : 'Enter a fixed discount amount.'}
+                  "percentage"
+                    ? "Maximum discount: 100%"
+                    : "Maximum discount cannot exceed subtotal."}
                 </small>
-
               </div>
 
-              {/* TAX */}
-
               <div className="form-group">
-
                 <label>
                   Tax Rate
                 </label>
 
                 <div className="input-with-suffix">
-
                   <input
                     type="number"
                     min="0"
                     value={taxRate}
                     onChange={(e) =>
-                      setTaxRate(
-                        Math.max(
-                          0,
-                          Number(
-                            e.target
-                              .value
-                          ) || 0
-                        )
+                      handleTaxChange(
+                        e.target.value
                       )
                     }
-                    placeholder="18"
                   />
 
-                  <span>
-                    %
-                  </span>
-
+                  <span>%</span>
                 </div>
 
                 <small>
-                  Tax will be
-                  calculated after
+                  Tax is calculated after
                   discount.
                 </small>
-
               </div>
-
             </div>
-
-            {/* DISCOUNT PREVIEW */}
 
             <div className="discount-preview">
 
               <div className="preview-item">
-
                 <span>
                   Discount Applied
                 </span>
 
                 <strong>
                   {discountType ===
-                  'percentage'
+                  "percentage"
                     ? `${discountValue}%`
-                    : `₹${Number(
-                        discountValue ||
-                          0
-                      ).toFixed(2)}`}
+                    : formatCurrency(
+                        discountAmount
+                      )}
                 </strong>
-
               </div>
 
-              <div className="preview-divider"></div>
+              <div className="preview-divider" />
 
               <div className="preview-item">
-
                 <span>
                   Tax Rate
                 </span>
 
                 <strong>
-                  {Number(
-                    taxRate || 0
-                  )}
-                  %
+                  {taxRate}%
                 </strong>
-
               </div>
-
             </div>
-
           </div>
 
-          {/* =========================
-              PAYMENT DETAILS
-          ========================= */}
+          {/* PAYMENT DETAILS */}
 
           <div className="form-card">
 
             <div className="card-title">
+              <h2>Payment Details</h2>
 
-              <div>
-                <h2>
-                  Payment Details
-                </h2>
-
-                <p>
-                  Select payment method
-                  and status.
-                </p>
-              </div>
-
+              <p>
+                Select payment method and
+                status.
+              </p>
             </div>
 
             <div className="form-grid">
 
               <div className="form-group">
-
                 <label>
                   Payment Method
                 </label>
 
                 <select
-                  value={
-                    paymentMethod
-                  }
+                  value={paymentMethod}
                   onChange={(e) =>
                     setPaymentMethod(
                       e.target.value
                     )
                   }
                 >
-
-                  <option>
+                  <option value="Cash">
                     Cash
                   </option>
 
-                  <option>
+                  <option value="UPI">
                     UPI
                   </option>
 
-                  <option>
+                  <option value="Card">
                     Card
                   </option>
 
-                  <option>
+                  <option value="Bank Transfer">
                     Bank Transfer
                   </option>
 
-                  <option>
+                  <option value="Credit">
                     Credit
                   </option>
-
                 </select>
-
               </div>
 
               <div className="form-group">
-
                 <label>
                   Payment Status
                 </label>
 
                 <select
-                  value={
-                    paymentStatus
-                  }
+                  value={paymentStatus}
                   onChange={(e) =>
                     setPaymentStatus(
                       e.target.value
                     )
                   }
                 >
-
-                  <option>
+                  <option value="Paid">
                     Paid
                   </option>
 
-                  <option>
+                  <option value="Pending">
                     Pending
                   </option>
 
-                  <option>
+                  <option value="Partial">
                     Partial
                   </option>
-
                 </select>
-
               </div>
-
             </div>
-
           </div>
 
-          {/* =========================
-              ACTIONS
-          ========================= */}
+          {/* ACTIONS */}
 
           <div className="sale-actions">
 
             <button
+              type="button"
               className="cancel-btn"
               onClick={() =>
-                navigate('/sales')
+                navigate("/sales")
               }
             >
               Cancel
             </button>
 
             <button
+              type="button"
               className="generate-btn"
-              onClick={
-                handleCreateSale
-              }
+              onClick={handleCreateSale}
             >
               Create Sale
             </button>
 
           </div>
-
         </div>
 
-        {/* =========================
-            RIGHT SUMMARY
-        ========================= */}
+        {/* RIGHT SUMMARY */}
 
-        <div className="sale-summary-panel">
+        <aside className="sale-summary-panel">
 
           <div className="summary-panel-header">
-
             <div>
-              <h2>
-                Sale Summary
-              </h2>
+              <h2>Sale Summary</h2>
 
-              <span>
-                SALE-0004
-              </span>
+              <span>SALE-0004</span>
             </div>
-
           </div>
 
           {/* CUSTOMER */}
 
           <div className="summary-customer">
-
-            <span>
-              Bill To
-            </span>
+            <span>Bill To</span>
 
             <strong>
               {selectedCustomer
                 ? selectedCustomer.name
-                : 'No customer selected'}
+                : "No customer selected"}
             </strong>
 
             <p>
               {selectedCustomer
                 ? selectedCustomer.phone
-                : 'Select a customer'}
+                : "Select a customer"}
             </p>
-
           </div>
 
           {/* ITEMS */}
@@ -1113,14 +900,11 @@ function NewSale() {
           <div className="summary-items">
 
             {items.map((item) => {
-
               const product =
                 products.find(
                   (p) =>
                     String(p.id) ===
-                    String(
-                      item.productId
-                    )
+                    String(item.productId)
                 );
 
               if (!product) {
@@ -1132,20 +916,17 @@ function NewSale() {
                   className="summary-item"
                   key={item.id}
                 >
-
                   <div>
-
                     <strong>
                       {product.name}
                     </strong>
 
                     <span>
-                      {item.quantity} ×{' '}
+                      {item.quantity} ×{" "}
                       {formatCurrency(
                         item.price
                       )}
                     </span>
-
                   </div>
 
                   <strong>
@@ -1154,7 +935,6 @@ function NewSale() {
                         item.price
                     )}
                   </strong>
-
                 </div>
               );
             })}
@@ -1169,7 +949,6 @@ function NewSale() {
                 </span>
               </div>
             )}
-
           </div>
 
           {/* CALCULATIONS */}
@@ -1177,9 +956,7 @@ function NewSale() {
           <div className="summary-calculations">
 
             <div>
-              <span>
-                Subtotal
-              </span>
+              <span>Subtotal</span>
 
               <strong>
                 {formatCurrency(
@@ -1189,9 +966,7 @@ function NewSale() {
             </div>
 
             <div>
-              <span>
-                Discount
-              </span>
+              <span>Discount</span>
 
               <strong className="discount-value">
                 -{formatCurrency(
@@ -1211,23 +986,19 @@ function NewSale() {
                 )}
               </strong>
             </div>
-
           </div>
 
           {/* GRAND TOTAL */}
 
           <div className="summary-grand-total">
 
-            <span>
-              Grand Total
-            </span>
+            <span>Grand Total</span>
 
             <strong>
               {formatCurrency(
                 grandTotal
               )}
             </strong>
-
           </div>
 
           {/* PAYMENT */}
@@ -1249,17 +1020,18 @@ function NewSale() {
                 Payment Status
               </span>
 
-              <strong className="summary-status">
+              <strong
+                className={`summary-status ${paymentStatus
+                  .toLowerCase()
+                  .replace(/\s+/g, "-")}`}
+              >
                 {paymentStatus}
               </strong>
             </div>
-
           </div>
 
-        </div>
-
+        </aside>
       </div>
-
     </div>
   );
 }

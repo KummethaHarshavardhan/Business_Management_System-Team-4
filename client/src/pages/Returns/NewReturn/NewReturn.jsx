@@ -104,21 +104,31 @@ function NewReturn() {
   const products = selectedInvoice?.products || [];
 
   const totalItems = Object.values(returnQuantities).reduce(
-    (total, quantity) => total + Number(quantity || 0),
+    (total, quantity) => {
+      return total + Number(quantity || 0);
+    },
     0
   );
 
-  const totalRefundAmount = products.reduce((total, product) => {
-    const quantity = Number(returnQuantities[product.id] || 0);
+  const totalRefundAmount = products.reduce(
+    (total, product) => {
+      const quantity = Number(
+        returnQuantities[product.id] || 0
+      );
 
-    return total + quantity * product.unitPrice;
-  }, 0);
+      return total + quantity * product.unitPrice;
+    },
+    0
+  );
 
   const formatCurrency = (amount) => {
-    return `₹${Number(amount).toLocaleString("en-IN", {
-      minimumFractionDigits: 2,
-      maximumFractionDigits: 2,
-    })}`;
+    return `₹${Number(amount || 0).toLocaleString(
+      "en-IN",
+      {
+        minimumFractionDigits: 2,
+        maximumFractionDigits: 2,
+      }
+    )}`;
   };
 
   const handleInvoiceChange = (event) => {
@@ -146,11 +156,17 @@ function NewReturn() {
 
     const quantity = Number(value);
 
-    if (Number.isNaN(quantity) || quantity < 0) {
+    if (
+      Number.isNaN(quantity) ||
+      quantity < 0
+    ) {
       return;
     }
 
-    const safeQuantity = Math.min(quantity, product.soldQty);
+    const safeQuantity = Math.min(
+      Math.floor(quantity),
+      product.soldQty
+    );
 
     setReturnQuantities((current) => ({
       ...current,
@@ -169,7 +185,9 @@ function NewReturn() {
       returnQuantities[product.id] || 0
     );
 
-    if (currentQuantity >= product.soldQty) {
+    if (
+      currentQuantity >= product.soldQty
+    ) {
       return;
     }
 
@@ -198,7 +216,8 @@ function NewReturn() {
     const newErrors = {};
 
     if (!invoiceId) {
-      newErrors.invoiceId = "Please select an invoice.";
+      newErrors.invoiceId =
+        "Please select an invoice.";
     }
 
     if (!returnReason) {
@@ -223,7 +242,9 @@ function NewReturn() {
 
     setErrors(newErrors);
 
-    return Object.keys(newErrors).length === 0;
+    return (
+      Object.keys(newErrors).length === 0
+    );
   };
 
   const handleSubmit = (event) => {
@@ -244,6 +265,10 @@ function NewReturn() {
         Math.floor(Math.random() * 9000) + 1000
       )}`,
       invoiceId: selectedInvoice.invoiceId,
+      saleId: selectedInvoice.invoiceId.replace(
+        "INV",
+        "SALE"
+      ),
       customer: selectedInvoice.customer,
       phone: selectedInvoice.phone,
       date: returnDate,
@@ -257,25 +282,29 @@ function NewReturn() {
         "Return request submitted for review.",
     };
 
-    console.log("New Return:", newReturn);
+    const existingReturns = JSON.parse(
+      localStorage.getItem("returns") || "[]"
+    );
+
+    localStorage.setItem(
+      "returns",
+      JSON.stringify([
+        newReturn,
+        ...existingReturns,
+      ])
+    );
+
+    setSuccessMessage(
+      `Return ${newReturn.id} created successfully.`
+    );
 
     setTimeout(() => {
-      setIsSubmitting(false);
-
-      setSuccessMessage(
-        `Return ${newReturn.id} created successfully.`
-      );
-
-      setTimeout(() => {
-        navigate("/returns");
-      }, 1200);
-    }, 700);
+      navigate("/returns");
+    }, 1000);
   };
 
   const handleCancel = () => {
-    if (isSubmitting) {
-      return;
-    }
+    if (isSubmitting) return;
 
     navigate("/returns");
   };
@@ -289,9 +318,12 @@ function NewReturn() {
 
         <div>
           <div className="new-return-breadcrumb">
-            <span className="breadcrumb-link">
+            <button
+              type="button"
+              onClick={() => navigate("/returns")}
+            >
               Returns
-            </span>
+            </button>
 
             <span>/</span>
 
@@ -301,8 +333,8 @@ function NewReturn() {
           <h1>Create New Return</h1>
 
           <p>
-            Process a customer return and initiate the
-            appropriate refund.
+            Process a customer return and initiate
+            the appropriate refund.
           </p>
         </div>
 
@@ -318,45 +350,43 @@ function NewReturn() {
       </div>
 
 
-      {/* ================= SUCCESS MESSAGE ================= */}
+      {/* ================= SUCCESS ================= */}
 
       {successMessage && (
         <div className="new-return-success">
-
-          <span className="success-icon">
+          <div className="success-icon">
             ✓
-          </span>
+          </div>
 
           <div>
             <strong>Return Created</strong>
 
-            <p>
-              {successMessage}
-            </p>
+            <p>{successMessage}</p>
           </div>
-
         </div>
       )}
 
 
-      {/* ================= MAIN FORM ================= */}
+      {/* ================================================= */}
+      {/* MAIN CONTENT */}
+      {/* ================================================= */}
 
-      <form
-        className="new-return-layout"
-        onSubmit={handleSubmit}
-      >
+      <div className="new-return-layout">
 
-        {/* ================= LEFT SIDE ================= */}
+        {/* ================================================= */}
+        {/* LEFT COLUMN */}
+        {/* ================================================= */}
 
-        <div className="new-return-main">
+        <main className="new-return-main">
 
-          {/* ================= INVOICE INFORMATION ================= */}
+          {/* ================= SECTION 01 ================= */}
 
           <section className="new-return-card">
 
             <div className="new-return-card-header">
 
-              <div>
+              <div className="section-heading">
+
                 <span className="section-number">
                   01
                 </span>
@@ -367,18 +397,17 @@ function NewReturn() {
                   </h2>
 
                   <p>
-                    Select the original invoice for
-                    this return.
+                    Select the original invoice
+                    for this return.
                   </p>
                 </div>
+
               </div>
 
             </div>
 
 
-            <div className="new-return-form-grid">
-
-              {/* Invoice */}
+            <div className="new-return-card-body">
 
               <div className="new-return-form-group full-width">
 
@@ -420,68 +449,54 @@ function NewReturn() {
               </div>
 
 
-              {/* Customer */}
+              <div className="new-return-form-grid">
 
-              <div className="new-return-info-box">
+                <div className="new-return-info-box">
+                  <span>Customer</span>
 
-                <span>
-                  Customer
-                </span>
-
-                <strong>
-                  {selectedInvoice?.customer || "—"}
-                </strong>
-
-              </div>
+                  <strong>
+                    {selectedInvoice?.customer ||
+                      "—"}
+                  </strong>
+                </div>
 
 
-              {/* Phone */}
+                <div className="new-return-info-box">
+                  <span>Mobile Number</span>
 
-              <div className="new-return-info-box">
-
-                <span>
-                  Mobile Number
-                </span>
-
-                <strong>
-                  {selectedInvoice?.phone || "—"}
-                </strong>
-
-              </div>
+                  <strong>
+                    {selectedInvoice?.phone ||
+                      "—"}
+                  </strong>
+                </div>
 
 
-              {/* Invoice Date */}
+                <div className="new-return-info-box">
+                  <span>Invoice Date</span>
 
-              <div className="new-return-info-box">
-
-                <span>
-                  Invoice Date
-                </span>
-
-                <strong>
-                  {selectedInvoice?.invoiceDate || "—"}
-                </strong>
-
-              </div>
+                  <strong>
+                    {selectedInvoice?.invoiceDate ||
+                      "—"}
+                  </strong>
+                </div>
 
 
-              {/* Return Date */}
+                <div className="new-return-form-group">
+                  <label>
+                    Return Date
+                    <span>*</span>
+                  </label>
 
-              <div className="new-return-form-group">
-
-                <label>
-                  Return Date
-                  <span>*</span>
-                </label>
-
-                <input
-                  type="text"
-                  value={returnDate}
-                  onChange={(event) =>
-                    setReturnDate(event.target.value)
-                  }
-                  placeholder="Enter return date"
-                />
+                  <input
+                    type="text"
+                    value={returnDate}
+                    onChange={(event) =>
+                      setReturnDate(
+                        event.target.value
+                      )
+                    }
+                  />
+                </div>
 
               </div>
 
@@ -490,13 +505,14 @@ function NewReturn() {
           </section>
 
 
-          {/* ================= RETURN ITEMS ================= */}
+          {/* ================= SECTION 02 ================= */}
 
           <section className="new-return-card">
 
             <div className="new-return-card-header">
 
-              <div>
+              <div className="section-heading">
+
                 <span className="section-number">
                   02
                 </span>
@@ -507,10 +523,11 @@ function NewReturn() {
                   </h2>
 
                   <p>
-                    Select the products and quantities
-                    being returned.
+                    Select the products and
+                    quantities being returned.
                   </p>
                 </div>
+
               </div>
 
               {selectedInvoice && (
@@ -522,179 +539,194 @@ function NewReturn() {
             </div>
 
 
-            {!selectedInvoice ? (
+            <div className="new-return-card-body">
 
-              <div className="return-items-placeholder">
+              {!selectedInvoice ? (
 
-                <div className="placeholder-icon">
-                  ↩
+                <div className="return-items-placeholder">
+
+                  <div className="placeholder-icon">
+                    ↩
+                  </div>
+
+                  <h3>
+                    Select an invoice
+                  </h3>
+
+                  <p>
+                    Choose an invoice above to
+                    view its products.
+                  </p>
+
                 </div>
 
-                <h3>
-                  Select an invoice
-                </h3>
+              ) : (
 
-                <p>
-                  Choose an invoice above to view its
-                  products.
-                </p>
+                <div className="return-products-table-wrapper">
 
-              </div>
+                  <table className="return-products-table">
 
-            ) : (
+                    <thead>
+                      <tr>
+                        <th>PRODUCT</th>
+                        <th>SOLD QTY</th>
+                        <th>RETURN QTY</th>
+                        <th>UNIT PRICE</th>
+                        <th>RETURN AMOUNT</th>
+                      </tr>
+                    </thead>
 
-              <div className="return-products-table-wrapper">
+                    <tbody>
 
-                <table className="return-products-table">
+                      {products.map((product) => {
 
-                  <thead>
-                    <tr>
-                      <th>PRODUCT</th>
-                      <th>SOLD QTY</th>
-                      <th>RETURN QTY</th>
-                      <th>UNIT PRICE</th>
-                      <th>RETURN AMOUNT</th>
-                    </tr>
-                  </thead>
+                        const quantity =
+                          Number(
+                            returnQuantities[
+                              product.id
+                            ] || 0
+                          );
 
-                  <tbody>
+                        const amount =
+                          quantity *
+                          product.unitPrice;
 
-                    {products.map((product) => {
+                        return (
+                          <tr key={product.id}>
 
-                      const quantity = Number(
-                        returnQuantities[product.id] || 0
-                      );
+                            <td>
+                              <div className="return-product-name">
 
-                      const amount =
-                        quantity * product.unitPrice;
+                                <strong>
+                                  {product.name}
+                                </strong>
 
-                      return (
-                        <tr key={product.id}>
-
-                          <td>
-                            <div className="return-product-name">
-
-                              <strong>
-                                {product.name}
-                              </strong>
-
-                              <span>
-                                Product ID: PRD-
-                                {String(product.id).padStart(
-                                  4,
-                                  "0"
-                                )}
-                              </span>
-
-                            </div>
-                          </td>
-
-
-                          <td>
-                            <span className="sold-quantity">
-                              {product.soldQty}
-                            </span>
-                          </td>
-
-
-                          <td>
-
-                            <div className="quantity-control">
-
-                              <button
-                                type="button"
-                                onClick={() =>
-                                  decreaseQuantity(product)
-                                }
-                                disabled={quantity <= 0}
-                                aria-label={`Decrease ${product.name} return quantity`}
-                              >
-                                −
-                              </button>
-
-                              <input
-                                type="number"
-                                min="0"
-                                max={product.soldQty}
-                                value={
-                                  returnQuantities[
+                                <span>
+                                  Product ID: PRD-
+                                  {String(
                                     product.id
-                                  ] ?? ""
-                                }
-                                onChange={(event) =>
-                                  handleQuantityChange(
-                                    product,
-                                    event.target.value
-                                  )
-                                }
-                                aria-label={`Return quantity for ${product.name}`}
-                              />
+                                  ).padStart(4, "0")}
+                                </span>
 
-                              <button
-                                type="button"
-                                onClick={() =>
-                                  increaseQuantity(product)
-                                }
-                                disabled={
-                                  quantity >=
-                                  product.soldQty
-                                }
-                                aria-label={`Increase ${product.name} return quantity`}
-                              >
-                                +
-                              </button>
+                              </div>
+                            </td>
 
-                            </div>
+                            <td>
+                              <span className="sold-quantity">
+                                {product.soldQty}
+                              </span>
+                            </td>
 
-                          </td>
+                            <td>
 
+                              <div className="quantity-control">
 
-                          <td>
-                            {formatCurrency(
-                              product.unitPrice
-                            )}
-                          </td>
+                                <button
+                                  type="button"
+                                  onClick={() =>
+                                    decreaseQuantity(
+                                      product
+                                    )
+                                  }
+                                  disabled={
+                                    quantity <= 0
+                                  }
+                                >
+                                  −
+                                </button>
 
+                                <input
+                                  type="number"
+                                  min="0"
+                                  max={
+                                    product.soldQty
+                                  }
+                                  value={
+                                    returnQuantities[
+                                      product.id
+                                    ] ?? ""
+                                  }
+                                  onChange={(event) =>
+                                    handleQuantityChange(
+                                      product,
+                                      event.target.value
+                                    )
+                                  }
+                                />
 
-                          <td>
-                            <strong className="product-return-amount">
-                              {formatCurrency(amount)}
-                            </strong>
-                          </td>
+                                <button
+                                  type="button"
+                                  onClick={() =>
+                                    increaseQuantity(
+                                      product
+                                    )
+                                  }
+                                  disabled={
+                                    quantity >=
+                                    product.soldQty
+                                  }
+                                >
+                                  +
+                                </button>
 
-                        </tr>
-                      );
-                    })}
+                              </div>
 
-                  </tbody>
+                            </td>
 
-                </table>
+                            <td>
+                              {formatCurrency(
+                                product.unitPrice
+                              )}
+                            </td>
 
-              </div>
-            )}
+                            <td>
+                              <strong className="product-return-amount">
+                                {formatCurrency(
+                                  amount
+                                )}
+                              </strong>
+                            </td>
 
-            {errors.products && (
-              <div className="products-error">
-                {errors.products}
-              </div>
-            )}
+                          </tr>
+                        );
+                      })}
 
-            {errors.amount && (
-              <div className="products-error">
-                {errors.amount}
-              </div>
-            )}
+                    </tbody>
+
+                  </table>
+
+                </div>
+
+              )}
+
+              {errors.products && (
+                <div className="products-error">
+                  {errors.products}
+                </div>
+              )}
+
+              {errors.amount && (
+                <div className="products-error">
+                  {errors.amount}
+                </div>
+              )}
+
+            </div>
 
           </section>
 
 
-          {/* ================= RETURN DETAILS ================= */}
+          {/* ================================================= */}
+          {/* SECTION 03 — RETURN DETAILS */}
+          {/* EXACTLY BELOW RETURN ITEMS */}
+          {/* ================================================= */}
 
-          <section className="new-return-card">
+          <section className="new-return-card return-details-card">
 
             <div className="new-return-card-header">
 
-              <div>
+              <div className="section-heading">
+
                 <span className="section-number">
                   03
                 </span>
@@ -709,137 +741,188 @@ function NewReturn() {
                     information.
                   </p>
                 </div>
+
               </div>
 
             </div>
 
 
-            <div className="new-return-form-grid">
+            <div className="new-return-card-body">
 
-              {/* Return Reason */}
+              <div className="new-return-form-grid">
 
-              <div className="new-return-form-group">
+                {/* RETURN REASON */}
 
-                <label>
-                  Return Reason
-                  <span>*</span>
-                </label>
+                <div className="new-return-form-group">
 
-                <select
-                  value={returnReason}
-                  onChange={(event) => {
+                  <label>
+                    Return Reason
+                    <span>*</span>
+                  </label>
 
-                    setReturnReason(
-                      event.target.value
-                    );
+                  <select
+                    value={returnReason}
+                    onChange={(event) => {
+                      setReturnReason(
+                        event.target.value
+                      );
 
-                    setErrors((current) => ({
-                      ...current,
-                      returnReason: "",
-                    }));
+                      setErrors((current) => ({
+                        ...current,
+                        returnReason: "",
+                      }));
+                    }}
+                    className={
+                      errors.returnReason
+                        ? "input-error"
+                        : ""
+                    }
+                  >
 
-                  }}
-                  className={
-                    errors.returnReason
-                      ? "input-error"
-                      : ""
-                  }
-                >
-
-                  <option value="">
-                    Select Reason
-                  </option>
-
-                  {reasons.map((reason) => (
-                    <option
-                      key={reason}
-                      value={reason}
-                    >
-                      {reason}
+                    <option value="">
+                      Select Reason
                     </option>
-                  ))}
 
-                </select>
+                    {reasons.map((reason) => (
+                      <option
+                        key={reason}
+                        value={reason}
+                      >
+                        {reason}
+                      </option>
+                    ))}
 
-                {errors.returnReason && (
-                  <small className="field-error">
-                    {errors.returnReason}
-                  </small>
-                )}
+                  </select>
+
+                  {errors.returnReason && (
+                    <small className="field-error">
+                      {errors.returnReason}
+                    </small>
+                  )}
+
+                </div>
+
+
+                {/* REFUND METHOD */}
+
+                <div className="new-return-form-group">
+
+                  <label>
+                    Refund Method
+                    <span>*</span>
+                  </label>
+
+                  <select
+                    value={refundMethod}
+                    onChange={(event) => {
+                      setRefundMethod(
+                        event.target.value
+                      );
+
+                      setErrors((current) => ({
+                        ...current,
+                        refundMethod: "",
+                      }));
+                    }}
+                    className={
+                      errors.refundMethod
+                        ? "input-error"
+                        : ""
+                    }
+                  >
+
+                    <option value="">
+                      Select Refund Method
+                    </option>
+
+                    {refundMethods.map(
+                      (method) => (
+                        <option
+                          key={method}
+                          value={method}
+                        >
+                          {method}
+                        </option>
+                      )
+                    )}
+
+                  </select>
+
+                  {errors.refundMethod && (
+                    <small className="field-error">
+                      {errors.refundMethod}
+                    </small>
+                  )}
+
+                </div>
+
+
+                {/* NOTES */}
+
+                <div className="new-return-form-group full-width">
+
+                  <div className="notes-label-row">
+
+                    <label>
+                      Notes
+                    </label>
+
+                    <span>
+                      {notes.length}/500
+                    </span>
+
+                  </div>
+
+                  <textarea
+                    rows="5"
+                    maxLength="500"
+                    value={notes}
+                    onChange={(event) =>
+                      setNotes(
+                        event.target.value
+                      )
+                    }
+                    placeholder="Add any additional information about this return..."
+                  />
+
+                </div>
 
               </div>
 
 
-              {/* Refund Method */}
+              {/* ================= ACTION BUTTONS ================= */}
 
-              <div className="new-return-form-group">
+              <div className="return-details-actions">
 
-                <label>
-                  Refund Method
-                  <span>*</span>
-                </label>
+                <button
+                  type="button"
+                  className="new-return-cancel-btn"
+                  onClick={handleCancel}
+                  disabled={isSubmitting}
+                >
+                  Cancel
+                </button>
 
-                <select
-                  value={refundMethod}
-                  onChange={(event) => {
-
-                    setRefundMethod(
-                      event.target.value
-                    );
-
-                    setErrors((current) => ({
-                      ...current,
-                      refundMethod: "",
-                    }));
-
-                  }}
-                  className={
-                    errors.refundMethod
-                      ? "input-error"
-                      : ""
-                  }
+                <button
+                  type="button"
+                  className="new-return-submit-btn"
+                  onClick={handleSubmit}
+                  disabled={isSubmitting}
                 >
 
-                  <option value="">
-                    Select Refund Method
-                  </option>
+                  {isSubmitting ? (
+                    <>
+                      <span className="button-spinner" />
+                      Creating Return...
+                    </>
+                  ) : (
+                    <>
+                      Create Return
+                      <span>→</span>
+                    </>
+                  )}
 
-                  {refundMethods.map((method) => (
-                    <option
-                      key={method}
-                      value={method}
-                    >
-                      {method}
-                    </option>
-                  ))}
-
-                </select>
-
-                {errors.refundMethod && (
-                  <small className="field-error">
-                    {errors.refundMethod}
-                  </small>
-                )}
-
-              </div>
-
-
-              {/* Notes */}
-
-              <div className="new-return-form-group full-width">
-
-                <label>
-                  Notes
-                </label>
-
-                <textarea
-                  rows="5"
-                  value={notes}
-                  onChange={(event) =>
-                    setNotes(event.target.value)
-                  }
-                  placeholder="Add any additional information about this return..."
-                />
+                </button>
 
               </div>
 
@@ -847,12 +930,16 @@ function NewReturn() {
 
           </section>
 
-        </div>
+        </main>
 
 
-        {/* ================= RIGHT SIDEBAR ================= */}
+        {/* ================================================= */}
+        {/* RIGHT SIDEBAR */}
+        {/* ================================================= */}
 
         <aside className="new-return-sidebar">
+
+          {/* SUMMARY */}
 
           <div className="return-summary-card">
 
@@ -877,9 +964,7 @@ function NewReturn() {
 
             <div className="summary-status">
 
-              <span>
-                Status
-              </span>
+              <span>Status</span>
 
               <strong>
                 Pending
@@ -892,54 +977,39 @@ function NewReturn() {
 
 
             <div className="summary-row">
-
-              <span>
-                Invoice
-              </span>
+              <span>Invoice</span>
 
               <strong>
                 {invoiceId || "—"}
               </strong>
-
             </div>
 
 
             <div className="summary-row">
-
-              <span>
-                Customer
-              </span>
+              <span>Customer</span>
 
               <strong>
-                {selectedInvoice?.customer || "—"}
+                {selectedInvoice?.customer ||
+                  "—"}
               </strong>
-
             </div>
 
 
             <div className="summary-row">
-
-              <span>
-                Return Items
-              </span>
+              <span>Return Items</span>
 
               <strong>
                 {totalItems}
               </strong>
-
             </div>
 
 
             <div className="summary-row">
-
-              <span>
-                Refund Method
-              </span>
+              <span>Refund Method</span>
 
               <strong>
                 {refundMethod || "—"}
               </strong>
-
             </div>
 
 
@@ -953,7 +1023,9 @@ function NewReturn() {
               </span>
 
               <strong>
-                {formatCurrency(totalRefundAmount)}
+                {formatCurrency(
+                  totalRefundAmount
+                )}
               </strong>
 
             </div>
@@ -961,7 +1033,7 @@ function NewReturn() {
           </div>
 
 
-          {/* ================= INFORMATION CARD ================= */}
+          {/* POLICY */}
 
           <div className="return-info-card">
 
@@ -976,9 +1048,11 @@ function NewReturn() {
               </strong>
 
               <p>
-                Please verify the returned items before
-                approving the refund. Return quantities
-                cannot exceed the original sold quantity.
+                Please verify the returned
+                items before approving the
+                refund. Return quantities
+                cannot exceed the original
+                sold quantity.
               </p>
 
             </div>
@@ -986,44 +1060,6 @@ function NewReturn() {
           </div>
 
         </aside>
-
-      </form>
-
-
-      {/* ================= FOOTER ACTIONS ================= */}
-
-      <div className="new-return-footer">
-
-        <button
-          type="button"
-          className="new-return-cancel-btn"
-          onClick={handleCancel}
-          disabled={isSubmitting}
-        >
-          Cancel
-        </button>
-
-
-        <button
-          type="submit"
-          className="new-return-submit-btn"
-          onClick={handleSubmit}
-          disabled={isSubmitting}
-        >
-
-          {isSubmitting ? (
-            <>
-              <span className="button-spinner" />
-              Creating Return...
-            </>
-          ) : (
-            <>
-              Create Return
-              <span>→</span>
-            </>
-          )}
-
-        </button>
 
       </div>
 

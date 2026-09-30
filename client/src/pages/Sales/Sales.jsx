@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useMemo, useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import "./Sales.css";
 
@@ -49,9 +49,9 @@ function Sales() {
   const [status, setStatus] = useState("All Status");
   const [selectedSale, setSelectedSale] = useState(null);
 
-  // =====================================================
-  // SEARCH + STATUS FILTER
-  // =====================================================
+  /* =====================================================
+     FILTER
+  ===================================================== */
 
   const filteredSales = useMemo(() => {
     return sales.filter((sale) => {
@@ -70,12 +70,43 @@ function Sales() {
     });
   }, [sales, search, status]);
 
-  // =====================================================
-  // STATISTICS
-  // =====================================================
+  /* =====================================================
+     ESC KEY
+  ===================================================== */
+
+  useEffect(() => {
+    if (!selectedSale) {
+      document.body.style.overflow = "";
+      return;
+    }
+
+    document.body.style.overflow = "hidden";
+
+    const handleEscape = (event) => {
+      if (event.key === "Escape") {
+        setSelectedSale(null);
+      }
+    };
+
+    document.addEventListener("keydown", handleEscape);
+
+    return () => {
+      document.removeEventListener(
+        "keydown",
+        handleEscape
+      );
+
+      document.body.style.overflow = "";
+    };
+  }, [selectedSale]);
+
+  /* =====================================================
+     STATISTICS
+  ===================================================== */
 
   const totalAmount = sales.reduce(
-    (sum, sale) => sum + Number(sale.amount || 0),
+    (sum, sale) =>
+      sum + Number(sale.amount || 0),
     0
   );
 
@@ -87,62 +118,40 @@ function Sales() {
     (sale) => sale.paymentStatus === "Pending"
   ).length;
 
-  // =====================================================
-  // CURRENCY FORMAT
-  // =====================================================
+  /* =====================================================
+     CURRENCY
+  ===================================================== */
 
   const formatCurrency = (amount) => {
-    return `₹${Number(amount || 0).toLocaleString("en-IN", {
-      minimumFractionDigits: 2,
-      maximumFractionDigits: 2,
-    })}`;
+    return `₹${Number(amount || 0).toLocaleString(
+      "en-IN",
+      {
+        minimumFractionDigits: 2,
+        maximumFractionDigits: 2,
+      }
+    )}`;
   };
 
-  // =====================================================
-  // NEW SALE
-  // =====================================================
+  /* =====================================================
+     ACTIONS
+  ===================================================== */
 
   const handleNewSale = () => {
     navigate("/sales/new");
   };
 
-  // =====================================================
-  // OPEN SALE DETAILS
-  // =====================================================
-
   const handleViewSale = (sale) => {
     setSelectedSale(sale);
   };
-
-  // =====================================================
-  // CLOSE SALE DETAILS
-  // =====================================================
 
   const closeSaleDetails = () => {
     setSelectedSale(null);
   };
 
-  // =====================================================
-  // RESET FILTERS
-  // =====================================================
-
   const resetFilters = () => {
     setSearch("");
     setStatus("All Status");
   };
-
-  // =====================================================
-  // VIEW INVOICE
-  // =====================================================
-
-  const handleViewInvoice = () => {
-    closeSaleDetails();
-    navigate("/invoices");
-  };
-
-  // =====================================================
-  // CALCULATE SUBTOTAL
-  // =====================================================
 
   const getSubtotal = (sale) => {
     return (
@@ -186,8 +195,6 @@ function Sales() {
 
       <div className="sales-stats">
 
-        {/* Total Sales */}
-
         <div className="stat-card">
 
           <div className="stat-icon purple">
@@ -204,8 +211,6 @@ function Sales() {
 
         </div>
 
-
-        {/* Total Amount */}
 
         <div className="stat-card">
 
@@ -224,8 +229,6 @@ function Sales() {
         </div>
 
 
-        {/* Paid Sales */}
-
         <div className="stat-card">
 
           <div className="stat-icon blue">
@@ -242,8 +245,6 @@ function Sales() {
 
         </div>
 
-
-        {/* Pending Sales */}
 
         <div className="stat-card">
 
@@ -265,18 +266,12 @@ function Sales() {
 
 
       {/* =====================================================
-          SALES TABLE CARD
+          TABLE CARD
       ===================================================== */}
 
       <div className="sales-table-card">
 
-        {/* ===================================================
-            TOOLBAR
-        =================================================== */}
-
         <div className="sales-toolbar">
-
-          {/* Search */}
 
           <div className="search-box">
 
@@ -294,14 +289,13 @@ function Sales() {
           </div>
 
 
-          {/* Status Filter */}
-
           <select
             value={status}
             onChange={(e) =>
               setStatus(e.target.value)
             }
           >
+
             <option value="All Status">
               All Status
             </option>
@@ -317,10 +311,9 @@ function Sales() {
             <option value="Partial">
               Partial
             </option>
+
           </select>
 
-
-          {/* Reset */}
 
           <button
             type="button"
@@ -333,9 +326,10 @@ function Sales() {
         </div>
 
 
-        {/* ===================================================
-            TABLE
-        =================================================== */}
+        {/* =====================================================
+            SALES TABLE
+            MOBILE = SEPARATE COLUMN
+        ===================================================== */}
 
         <div className="table-wrapper">
 
@@ -344,14 +338,25 @@ function Sales() {
             <thead>
 
               <tr>
+
                 <th>SALE ID</th>
+
                 <th>CUSTOMER</th>
+
+                <th>MOBILE</th>
+
                 <th>DATE</th>
+
                 <th>ITEMS</th>
+
                 <th>AMOUNT</th>
+
                 <th>PAYMENT</th>
+
                 <th>STATUS</th>
+
                 <th>ACTION</th>
+
               </tr>
 
             </thead>
@@ -382,7 +387,7 @@ function Sales() {
                     </td>
 
 
-                    {/* CUSTOMER */}
+                    {/* CUSTOMER ONLY */}
 
                     <td>
 
@@ -391,6 +396,17 @@ function Sales() {
                         <strong>
                           {sale.customer}
                         </strong>
+
+                      </div>
+
+                    </td>
+
+
+                    {/* MOBILE - SEPARATE COLUMN */}
+
+                    <td>
+
+                      <div className="customer-cell">
 
                         <span>
                           {sale.phone}
@@ -443,11 +459,6 @@ function Sales() {
 
                     <td>
 
-                      {/* IMPORTANT:
-                          Status is NOT clickable.
-                          Only View button / Sale ID opens details.
-                      */}
-
                       <span
                         className={`status-badge ${sale.paymentStatus.toLowerCase()}`}
                       >
@@ -481,7 +492,7 @@ function Sales() {
 
                 <tr>
 
-                  <td colSpan="8">
+                  <td colSpan="9">
 
                     <div className="empty-state">
 
@@ -525,6 +536,7 @@ function Sales() {
 
       {/* =====================================================
           SALE DETAILS MODAL
+          SALES = CLOSE ONLY
       ===================================================== */}
 
       {selectedSale && (
@@ -541,9 +553,7 @@ function Sales() {
             }
           >
 
-            {/* =================================================
-                MODAL HEADER
-            ================================================= */}
+            {/* MODAL HEADER */}
 
             <div className="sale-modal-header">
 
@@ -576,13 +586,9 @@ function Sales() {
             </div>
 
 
-            {/* =================================================
-                CUSTOMER DETAILS
-            ================================================= */}
+            {/* CUSTOMER DETAILS */}
 
             <div className="sale-detail-grid">
-
-              {/* Customer */}
 
               <div className="detail-box">
 
@@ -594,14 +600,21 @@ function Sales() {
                   {selectedSale.customer}
                 </strong>
 
-                <small>
-                  {selectedSale.phone}
-                </small>
-
               </div>
 
 
-              {/* Date */}
+              <div className="detail-box">
+
+                <span>
+                  Mobile
+                </span>
+
+                <strong>
+                  {selectedSale.phone}
+                </strong>
+
+              </div>
+
 
               <div className="detail-box">
 
@@ -616,8 +629,6 @@ function Sales() {
               </div>
 
 
-              {/* Payment Method */}
-
               <div className="detail-box">
 
                 <span>
@@ -631,15 +642,11 @@ function Sales() {
               </div>
 
 
-              {/* Payment Status */}
-
               <div className="detail-box">
 
                 <span>
                   Payment Status
                 </span>
-
-                {/* Also NON-clickable inside modal */}
 
                 <span
                   className={`status-badge ${selectedSale.paymentStatus.toLowerCase()}`}
@@ -652,9 +659,7 @@ function Sales() {
             </div>
 
 
-            {/* =================================================
-                SALE SUMMARY
-            ================================================= */}
+            {/* SALE SUMMARY */}
 
             <div className="sale-items-section">
 
@@ -697,13 +702,9 @@ function Sales() {
             </div>
 
 
-            {/* =================================================
-                CALCULATIONS
-            ================================================= */}
+            {/* CALCULATIONS */}
 
             <div className="sale-calculation">
-
-              {/* Subtotal */}
 
               <div>
 
@@ -720,8 +721,6 @@ function Sales() {
               </div>
 
 
-              {/* Discount */}
-
               <div>
 
                 <span>
@@ -737,8 +736,6 @@ function Sales() {
               </div>
 
 
-              {/* Tax */}
-
               <div>
 
                 <span>
@@ -753,8 +750,6 @@ function Sales() {
 
               </div>
 
-
-              {/* Grand Total */}
 
               <div className="grand-total-row">
 
@@ -773,9 +768,7 @@ function Sales() {
             </div>
 
 
-            {/* =================================================
-                MODAL FOOTER
-            ================================================= */}
+            {/* SALES FOOTER - CLOSE ONLY */}
 
             <div className="sale-modal-footer">
 
@@ -785,15 +778,6 @@ function Sales() {
                 onClick={closeSaleDetails}
               >
                 Close
-              </button>
-
-
-              <button
-                type="button"
-                className="primary-modal-btn"
-                onClick={handleViewInvoice}
-              >
-                View Invoice
               </button>
 
             </div>
