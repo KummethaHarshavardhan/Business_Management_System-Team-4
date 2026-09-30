@@ -7,6 +7,7 @@ const mockSale = { findById: jest.fn() };
 const mockInvoice = { findOne: jest.fn(), create: jest.fn(), find: jest.fn(), findById: jest.fn() };
 const mockGenerateInvoiceNumber = jest.fn();
 const mockGetProduct = jest.fn();
+const mockGetBusinessDetails = jest.fn();
 
 jest.unstable_mockModule('../model/sale.js', () => ({ default: mockSale }));
 jest.unstable_mockModule('../model/invoice.js', () => ({ default: mockInvoice }));
@@ -17,6 +18,9 @@ jest.unstable_mockModule('../services/stockService.js', () => ({
   getProduct: mockGetProduct,
   increaseStock: jest.fn(),
   decreaseStock: jest.fn(),
+}));
+jest.unstable_mockModule('../services/businessService.js', () => ({
+  getBusinessDetails: mockGetBusinessDetails,
 }));
 
 // routes must be imported AFTER the mocks are registered
@@ -50,6 +54,12 @@ beforeEach(() => {
   jest.resetAllMocks();
   mockGetProduct.mockResolvedValue({ _id: PRODUCT_ID, name: 'Pen', price: 100, stock: 50 });
   mockGenerateInvoiceNumber.mockResolvedValue('INV-0001');
+  mockGetBusinessDetails.mockResolvedValue({
+    name: 'Apex Billing Solutions',
+    address: '123 Commercial Street',
+    gstin: '29AAAAA0000A1Z5',
+    phone: '+91 9876543210',
+  });
   mockInvoice.create.mockImplementation(async (doc) => ({ _id: INVOICE_ID, ...doc }));
 });
 
@@ -82,15 +92,41 @@ describe('POST /api/invoices', () => {
     expect(res.body.discountAmount).toBe(15);
   });
 
-  test('placeholder customer and business names are NOT empty (schema needs customerDetails.name)', async () => {
+  test('business details come from Team 1 (real integration, mocked here)', async () => {
+    mockSale.findById.mockResolvedValue(makeSale());
+    mockInvoice.findOne.mockResolvedValue(null);
+
+    const res = await request(app)
+      .post('/api/invoices')
+      .set('Authorization', 'Bearer sometoken')
+      .send({ saleId: SALE_ID });
+
+    expect(res.status).toBe(201);
+    expect(res.body.businessDetails.name).toBe('Apex Billing Solutions');
+    expect(res.body.businessDetails.gstin).toBe('29AAAAA0000A1Z5');
+    expect(mockGetBusinessDetails).toHaveBeenCalledWith('Bearer sometoken');
+  });
+
+  // Team 3 (customer) has not arrived yet, so this is still a placeholder.
+  test('placeholder customer name is NOT empty (schema needs customerDetails.name)', async () => {
     mockSale.findById.mockResolvedValue(makeSale());
     mockInvoice.findOne.mockResolvedValue(null);
 
     const res = await request(app).post('/api/invoices').send({ saleId: SALE_ID });
 
-    // When Team 1 / Team 3 apis are added, update these two expectations
+    // When Team 3's api is added, update this expectation to the real customer name
     expect(res.body.customerDetails.name).not.toBe('');
-    expect(res.body.businessDetails.name).not.toBe('');
+  });
+
+  test('500 when Team 1 business service fails', async () => {
+    mockSale.findById.mockResolvedValue(makeSale());
+    mockInvoice.findOne.mockResolvedValue(null);
+    mockGetBusinessDetails.mockRejectedValue(new Error('Failed to fetch business details from Team 1 (status 401)'));
+
+    const res = await request(app).post('/api/invoices').send({ saleId: SALE_ID });
+
+    expect(res.status).toBe(500);
+    expect(res.body.message).toMatch(/Team 1/);
   });
 
   test('400 when saleId is missing', async () => {
@@ -167,6 +203,13 @@ describe('GET /api/invoices', () => {
     await request(app).get('/api/invoices');
 
     expect(mockInvoice.find).toHaveBeenCalledWith({});
+  });
+
+  test.each(['from', 'to'])('400 for an invalid %s date, does not touch the database', async (name) => {
+    const res = await request(app).get(`/api/invoices?${name}=invalid-date`);
+
+    expect(res.status).toBe(400);
+    expect(mockInvoice.find).not.toHaveBeenCalled();
   });
 });
 

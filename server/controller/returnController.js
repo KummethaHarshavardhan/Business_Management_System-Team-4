@@ -61,8 +61,20 @@ export const getReturns = async (req, res) => {
   try {
     const { saleId, productId } = req.query;
     const filter = {};
-    if (saleId) filter.sale = saleId;
-    if (productId) filter.product = productId;
+
+    if (saleId) {
+      if (!mongoose.isValidObjectId(saleId)) {
+        return res.status(400).json({ message: 'saleId is not a valid id' });
+      }
+      filter.sale = saleId;
+    }
+
+    if (productId) {
+      if (!mongoose.isValidObjectId(productId)) {
+        return res.status(400).json({ message: 'productId is not a valid id' });
+      }
+      filter.product = productId;
+    }
 
     const returns = await Return.find(filter).sort({ createdAt: -1 });
     return res.json(returns);

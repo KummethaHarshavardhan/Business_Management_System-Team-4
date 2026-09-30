@@ -171,6 +171,20 @@ describe('GET /api/returns', () => {
 
     expect(mockReturn.find).toHaveBeenCalledWith({ sale: SALE_ID, product: PRODUCT_ID });
   });
+
+  test('400 for an invalid saleId, does not touch the database', async () => {
+    const res = await request(app).get('/api/returns?saleId=invalid123');
+
+    expect(res.status).toBe(400);
+    expect(mockReturn.find).not.toHaveBeenCalled();
+  });
+
+  test('400 for an invalid productId, does not touch the database', async () => {
+    const res = await request(app).get('/api/returns?productId=invalid123');
+
+    expect(res.status).toBe(400);
+    expect(mockReturn.find).not.toHaveBeenCalled();
+  });
 });
 
 describe('GET /api/returns/:id', () => {
