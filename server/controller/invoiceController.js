@@ -27,7 +27,8 @@ export const createInvoice = async (req, res) => {
       return res.status(409).json({ message: 'Invoice already exists for this sale', invoice: existing });
     }
 
- 
+    // Team 1 data has arrived (GET /api/business). Forward the cashier's own
+    // token so Team 1's authenticate middleware accepts the request.
     const businessDetails = await getBusinessDetails(req.headers.authorization);
 
     // -- i want api/data/field from team3 - customer by id (sale.customer): name, phone, address
@@ -86,9 +87,20 @@ export const getInvoices = async (req, res) => {
 
     if (from || to) {
       filter.invoiceDate = {};
-      if (from) filter.invoiceDate.$gte = new Date(from);
+
+      if (from) {
+        const start = new Date(from);
+        if (Number.isNaN(start.getTime())) {
+          return res.status(400).json({ message: 'from is not a valid date' });
+        }
+        filter.invoiceDate.$gte = start;
+      }
+
       if (to) {
         const end = new Date(to);
+        if (Number.isNaN(end.getTime())) {
+          return res.status(400).json({ message: 'to is not a valid date' });
+        }
         end.setHours(23, 59, 59, 999);
         filter.invoiceDate.$lte = end;
       }
