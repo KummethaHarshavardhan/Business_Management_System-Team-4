@@ -261,17 +261,23 @@ function NewInvoice() {
 
       items: invoiceItems,
 
-      subtotal: Number(subtotal.toFixed(2)),
+      subtotal: Number(
+        subtotal.toFixed(2)
+      ),
 
       discountType,
 
-      discountValue: Number(discountValue || 0),
+      discountValue: Number(
+        discountValue || 0
+      ),
 
       discountAmount: Number(
         discountAmount.toFixed(2)
       ),
 
-      taxRate: Number(taxRate || 0),
+      taxRate: Number(
+        taxRate || 0
+      ),
 
       taxAmount: Number(
         taxAmount.toFixed(2)
@@ -304,7 +310,10 @@ function NewInvoice() {
   return (
     <div className="new-invoice-page">
 
-      {/* Header */}
+      {/* =========================
+          PAGE HEADER
+      ========================= */}
+
       <div className="new-invoice-header">
 
         <div>
@@ -324,21 +333,34 @@ function NewInvoice() {
 
       </div>
 
+      {/* =========================
+          MAIN LAYOUT
+      ========================= */}
+
       <div className="invoice-form-layout">
+
+        {/* =========================
+            LEFT FORM SECTION
+        ========================= */}
 
         <div className="invoice-form-main">
 
-          {/* Customer */}
+          {/* CUSTOMER DETAILS */}
+
           <div className="invoice-form-card">
 
             <div className="card-title">
+
               <div>
+
                 <h2>Customer Details</h2>
 
                 <p>
                   Select the customer for this invoice.
                 </p>
+
               </div>
+
             </div>
 
             <div className="form-grid">
@@ -391,22 +413,28 @@ function NewInvoice() {
 
           </div>
 
-          {/* Items */}
+          {/* =========================
+              INVOICE ITEMS
+          ========================= */}
+
           <div className="invoice-form-card">
 
             <div className="card-header-row">
 
               <div>
+
                 <h2>Invoice Items</h2>
 
                 <p>
                   Add products and quantities.
                 </p>
+
               </div>
 
               <button
                 className="add-item-btn"
                 onClick={addItem}
+                type="button"
               >
                 + Add Item
               </button>
@@ -519,6 +547,7 @@ function NewInvoice() {
                           disabled={
                             items.length === 1
                           }
+                          type="button"
                         >
                           ×
                         </button>
@@ -537,17 +566,22 @@ function NewInvoice() {
 
           </div>
 
-          {/* Discount & Tax */}
+          {/* =========================
+              DISCOUNT & TAX
+          ========================= */}
+
           <div className="invoice-form-card">
 
             <div className="card-title">
 
               <div>
+
                 <h2>Discount & Tax</h2>
 
                 <p>
                   Apply discount and tax to the invoice.
                 </p>
+
               </div>
 
             </div>
@@ -585,8 +619,7 @@ function NewInvoice() {
 
                 <label>
                   Discount
-                  {discountType ===
-                  'percentage'
+                  {discountType === 'percentage'
                     ? ' (%)'
                     : ' (₹)'}
                 </label>
@@ -627,17 +660,22 @@ function NewInvoice() {
 
           </div>
 
-          {/* Payment */}
+          {/* =========================
+              PAYMENT DETAILS
+          ========================= */}
+
           <div className="invoice-form-card">
 
             <div className="card-title">
 
               <div>
+
                 <h2>Payment Details</h2>
 
                 <p>
                   Select payment method and status.
                 </p>
+
               </div>
 
             </div>
@@ -696,30 +734,14 @@ function NewInvoice() {
 
           </div>
 
-          {/* Actions */}
-          <div className="invoice-actions">
-
-            <button
-              className="cancel-btn"
-              onClick={() =>
-                navigate('/invoices')
-              }
-            >
-              Cancel
-            </button>
-
-            <button
-              className="generate-btn"
-              onClick={handleGenerateInvoice}
-            >
-              Generate Invoice
-            </button>
-
-          </div>
-
         </div>
 
-        {/* Summary */}
+        {/* =========================
+            INVOICE SUMMARY
+            NOW COMES AFTER PAYMENT
+            ON MOBILE
+        ========================= */}
+
         <div className="invoice-summary-panel">
 
           <div className="summary-panel-header">
@@ -803,6 +825,7 @@ function NewInvoice() {
           <div className="summary-calculations">
 
             <div>
+
               <span>
                 Subtotal
               </span>
@@ -810,9 +833,11 @@ function NewInvoice() {
               <strong>
                 {formatCurrency(subtotal)}
               </strong>
+
             </div>
 
             <div>
+
               <span>
                 Discount
               </span>
@@ -820,9 +845,11 @@ function NewInvoice() {
               <strong className="discount-value">
                 -{formatCurrency(discountAmount)}
               </strong>
+
             </div>
 
             <div>
+
               <span>
                 Tax ({taxRate}%)
               </span>
@@ -830,6 +857,7 @@ function NewInvoice() {
               <strong>
                 {formatCurrency(taxAmount)}
               </strong>
+
             </div>
 
           </div>
@@ -871,6 +899,33 @@ function NewInvoice() {
               </strong>
 
             </div>
+
+          </div>
+
+          {/* =========================
+              ACTION BUTTONS
+              BELOW SUMMARY
+          ========================= */}
+
+          <div className="invoice-actions">
+
+            <button
+              className="cancel-btn"
+              onClick={() =>
+                navigate('/invoices')
+              }
+              type="button"
+            >
+              Cancel
+            </button>
+
+            <button
+              className="generate-btn"
+              onClick={handleGenerateInvoice}
+              type="button"
+            >
+              Generate Invoice
+            </button>
 
           </div>
 

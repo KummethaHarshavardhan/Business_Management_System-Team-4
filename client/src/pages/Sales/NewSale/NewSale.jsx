@@ -105,7 +105,8 @@ function NewSale() {
     if (discountType === "percentage") {
       return Math.min(
         subtotal,
-        (subtotal * Math.min(100, Math.max(0, value))) /
+        (subtotal *
+          Math.min(100, Math.max(0, value))) /
           100
       );
     }
@@ -201,8 +202,7 @@ function NewSale() {
         String(currentItem?.productId)
     );
 
-    let newQuantity =
-      Number(quantity);
+    let newQuantity = Number(quantity);
 
     if (!Number.isFinite(newQuantity)) {
       newQuantity = 1;
@@ -840,29 +840,6 @@ function NewSale() {
             </div>
           </div>
 
-          {/* ACTIONS */}
-
-          <div className="sale-actions">
-
-            <button
-              type="button"
-              className="cancel-btn"
-              onClick={() =>
-                navigate("/sales")
-              }
-            >
-              Cancel
-            </button>
-
-            <button
-              type="button"
-              className="generate-btn"
-              onClick={handleCreateSale}
-            >
-              Create Sale
-            </button>
-
-          </div>
         </div>
 
         {/* RIGHT SUMMARY */}
@@ -1028,6 +1005,34 @@ function NewSale() {
                 {paymentStatus}
               </strong>
             </div>
+          </div>
+
+          {/* ACTIONS
+              MOVED INSIDE SUMMARY PANEL
+              SO THEY ALWAYS APPEAR BELOW
+              SALE SUMMARY
+          */}
+
+          <div className="sale-actions">
+
+            <button
+              type="button"
+              className="cancel-btn"
+              onClick={() =>
+                navigate("/sales")
+              }
+            >
+              Cancel
+            </button>
+
+            <button
+              type="button"
+              className="generate-btn"
+              onClick={handleCreateSale}
+            >
+              Create Sale
+            </button>
+
           </div>
 
         </aside>

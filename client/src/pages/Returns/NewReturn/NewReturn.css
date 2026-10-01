@@ -4,10 +4,13 @@
 
 .new-return-page {
   min-height: 100vh;
+  width: 100%;
+  max-width: 100%;
   background: #f5f7fb;
   padding: 36px 40px 50px;
   box-sizing: border-box;
   color: #172033;
+  overflow-x: hidden;
 }
 
 
@@ -16,7 +19,7 @@
    ========================================================= */
 
 .new-return-header {
-  max-width: 1400px;
+  max-width: 1100px;
   margin: 0 auto 28px;
 
   display: flex;
@@ -96,7 +99,7 @@
    ========================================================= */
 
 .new-return-success {
-  max-width: 1400px;
+  max-width: 1100px;
   margin: 0 auto 20px;
 
   display: flex;
@@ -121,7 +124,7 @@
 
   border-radius: 50%;
   background: #12a878;
-  color: white;
+  color: #ffffff;
 
   font-weight: 800;
 }
@@ -139,28 +142,29 @@
 
 
 /* =========================================================
-   MAIN GRID
+   MAIN LAYOUT
+   IMPORTANT:
+   SINGLE COLUMN
+   Review Return comes BELOW Return Details
    ========================================================= */
 
 .new-return-layout {
-  max-width: 1400px;
+  width: 100%;
+  max-width: 1100px;
   margin: 0 auto;
 
-  display: grid;
-  grid-template-columns:
-    minmax(0, 1fr)
-    400px;
+  display: block;
 
-  align-items: start;
-  gap: 28px;
+  box-sizing: border-box;
 }
 
 
 /* =========================================================
-   LEFT COLUMN
+   MAIN COLUMN
    ========================================================= */
 
 .new-return-main {
+  width: 100%;
   min-width: 0;
 
   display: flex;
@@ -203,6 +207,8 @@
   display: flex;
   align-items: center;
   gap: 16px;
+
+  min-width: 0;
 }
 
 .section-number {
@@ -386,6 +392,8 @@
 
   font-size: 12px;
   font-weight: 800;
+
+  flex-shrink: 0;
 }
 
 .return-items-placeholder {
@@ -439,6 +447,7 @@
 .return-products-table-wrapper {
   width: 100%;
   overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
 }
 
 .return-products-table {
@@ -589,8 +598,6 @@
 
 /* =========================================================
    RETURN DETAILS
-   IMPORTANT:
-   THIS CARD IS BELOW RETURN ITEMS
    ========================================================= */
 
 .return-details-card {
@@ -610,12 +617,156 @@
 
 
 /* =========================================================
-   ACTION BUTTONS
-   BELOW RETURN DETAILS
+   REVIEW RETURN
+   IMPORTANT:
+   THIS IS NOW BELOW RETURN DETAILS
    ========================================================= */
 
-.return-details-actions {
-  margin-top: 26px;
+.review-return-card {
+  width: 100%;
+
+  padding: 26px;
+
+  border: 1px solid #dfe4ee;
+  border-radius: 16px;
+
+  background: #ffffff;
+
+  box-sizing: border-box;
+}
+
+.summary-card-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 15px;
+}
+
+.summary-card-header span {
+  color: #5a50e8;
+
+  font-size: 11px;
+  font-weight: 900;
+  letter-spacing: 0.8px;
+}
+
+.summary-card-header h2 {
+  margin: 7px 0 0;
+
+  color: #172039;
+
+  font-size: 21px;
+  font-weight: 800;
+}
+
+.summary-icon {
+  width: 42px;
+  height: 42px;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  border-radius: 11px;
+
+  background: #eef0ff;
+  color: #5046e5;
+
+  font-size: 21px;
+  font-weight: 700;
+
+  flex-shrink: 0;
+}
+
+.summary-status {
+  margin-top: 22px;
+  padding: 13px 14px;
+
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+
+  border-radius: 10px;
+
+  background: #effbf6;
+}
+
+.summary-status span {
+  color: #6f897e;
+  font-size: 13px;
+}
+
+.summary-status strong {
+  padding: 6px 11px;
+
+  border-radius: 20px;
+
+  background: #fff6e8;
+  color: #ed7117;
+
+  font-size: 11px;
+}
+
+.summary-divider {
+  height: 1px;
+
+  margin: 20px 0;
+
+  background: #e7ebf1;
+}
+
+.summary-row {
+  min-height: 42px;
+
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 20px;
+}
+
+.summary-row span {
+  color: #77859e;
+  font-size: 13px;
+}
+
+.summary-row strong {
+  max-width: 55%;
+
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+
+  color: #26324c;
+  font-size: 13px;
+}
+
+.summary-total {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 20px;
+}
+
+.summary-total span {
+  color: #27334b;
+  font-size: 14px;
+  font-weight: 800;
+}
+
+.summary-total strong {
+  color: #099b6c;
+  font-size: 21px;
+  font-weight: 900;
+}
+
+
+/* =========================================================
+   REVIEW ACTION BUTTONS
+   NOW BELOW REVIEW RETURN
+   ========================================================= */
+
+.review-return-actions {
+  margin-top: 24px;
   padding-top: 22px;
 
   display: flex;
@@ -704,163 +855,12 @@
 
 
 /* =========================================================
-   RIGHT SIDEBAR
-   ========================================================= */
-
-.new-return-sidebar {
-  min-width: 0;
-
-  display: flex;
-  flex-direction: column;
-  gap: 18px;
-
-  position: sticky;
-  top: 24px;
-}
-
-
-/* =========================================================
-   SUMMARY CARD
-   ========================================================= */
-
-.return-summary-card {
-  padding: 24px;
-
-  border: 1px solid #dfe4ee;
-  border-radius: 16px;
-
-  background: #ffffff;
-
-  box-sizing: border-box;
-}
-
-.summary-card-header {
-  display: flex;
-  align-items: flex-start;
-  justify-content: space-between;
-  gap: 15px;
-}
-
-.summary-card-header span {
-  color: #5a50e8;
-
-  font-size: 11px;
-  font-weight: 900;
-  letter-spacing: 0.8px;
-}
-
-.summary-card-header h2 {
-  margin: 7px 0 0;
-
-  color: #172039;
-
-  font-size: 21px;
-  font-weight: 800;
-}
-
-.summary-icon {
-  width: 42px;
-  height: 42px;
-
-  display: flex;
-  align-items: center;
-  justify-content: center;
-
-  border-radius: 11px;
-
-  background: #eef0ff;
-  color: #5046e5;
-
-  font-size: 21px;
-  font-weight: 700;
-}
-
-.summary-status {
-  margin-top: 22px;
-  padding: 13px 14px;
-
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-
-  border-radius: 10px;
-
-  background: #effbf6;
-}
-
-.summary-status span {
-  color: #6f897e;
-  font-size: 13px;
-}
-
-.summary-status strong {
-  padding: 6px 11px;
-
-  border-radius: 20px;
-
-  background: #fff6e8;
-  color: #ed7117;
-
-  font-size: 11px;
-}
-
-.summary-divider {
-  height: 1px;
-
-  margin: 20px 0;
-
-  background: #e7ebf1;
-}
-
-.summary-row {
-  min-height: 42px;
-
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 20px;
-}
-
-.summary-row span {
-  color: #77859e;
-  font-size: 13px;
-}
-
-.summary-row strong {
-  max-width: 55%;
-
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-
-  color: #26324c;
-  font-size: 13px;
-}
-
-.summary-total {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-}
-
-.summary-total span {
-  color: #27334b;
-  font-size: 14px;
-  font-weight: 800;
-}
-
-.summary-total strong {
-  color: #099b6c;
-  font-size: 21px;
-  font-weight: 900;
-}
-
-
-/* =========================================================
    RETURN POLICY
    ========================================================= */
 
 .return-info-card {
+  width: 100%;
+
   display: flex;
   align-items: flex-start;
   gap: 14px;
@@ -913,37 +913,44 @@
 
 
 /* =========================================================
-   RESPONSIVE
+   TABLET
    ========================================================= */
 
-@media (max-width: 1100px) {
+@media (max-width: 900px) {
+  .new-return-page {
+    padding: 30px 24px 45px;
+  }
+
+  .new-return-header,
+  .new-return-success,
   .new-return-layout {
-    grid-template-columns: 1fr;
-  }
-
-  .new-return-sidebar {
-    position: static;
-
-    grid-row: 1;
-  }
-
-  .new-return-main {
-    grid-row: 2;
+    max-width: 100%;
   }
 }
 
 
+/* =========================================================
+   MOBILE
+   ========================================================= */
+
 @media (max-width: 768px) {
+
   .new-return-page {
     padding: 24px 16px 40px;
   }
 
   .new-return-header {
     flex-direction: column;
+    gap: 18px;
   }
 
   .new-return-header h1 {
     font-size: 27px;
+  }
+
+  .new-return-header p {
+    font-size: 13px;
+    line-height: 1.5;
   }
 
   .new-return-back-btn {
@@ -959,6 +966,7 @@
   }
 
   .new-return-card-header {
+    min-height: auto;
     padding: 18px;
   }
 
@@ -966,7 +974,32 @@
     padding: 18px;
   }
 
-  .return-details-actions {
+  .section-heading {
+    align-items: flex-start;
+  }
+
+  .section-number {
+    width: 38px;
+    height: 38px;
+  }
+
+  .new-return-card-header h2 {
+    font-size: 18px;
+  }
+
+  .new-return-card-header p {
+    line-height: 1.45;
+  }
+
+  .item-count-label {
+    display: none;
+  }
+
+  .review-return-card {
+    padding: 18px;
+  }
+
+  .review-return-actions {
     flex-direction: column-reverse;
   }
 
@@ -977,13 +1010,49 @@
 }
 
 
+/* =========================================================
+   SMALL MOBILE
+   ========================================================= */
+
 @media (max-width: 480px) {
+
   .new-return-page {
     padding: 18px 12px 30px;
   }
 
+  .new-return-header {
+    margin-bottom: 20px;
+  }
+
+  .new-return-breadcrumb {
+    font-size: 12px;
+    gap: 7px;
+    margin-bottom: 9px;
+  }
+
+  .new-return-breadcrumb button {
+    font-size: 12px;
+  }
+
   .new-return-header h1 {
     font-size: 24px;
+  }
+
+  .new-return-header p {
+    font-size: 12px;
+  }
+
+  .new-return-card,
+  .review-return-card {
+    border-radius: 12px;
+  }
+
+  .new-return-card-header {
+    padding: 15px;
+  }
+
+  .new-return-card-body {
+    padding: 15px;
   }
 
   .section-heading {
@@ -991,15 +1060,131 @@
   }
 
   .section-number {
-    width: 36px;
-    height: 36px;
+    width: 34px;
+    height: 34px;
+
+    border-radius: 8px;
+
+    font-size: 12px;
   }
 
   .new-return-card-header h2 {
-    font-size: 17px;
+    font-size: 16px;
+  }
+
+  .new-return-card-header p {
+    font-size: 11px;
+  }
+
+  .new-return-form-grid {
+    gap: 16px;
+  }
+
+  .new-return-form-group input,
+  .new-return-form-group select {
+    height: 46px;
+    font-size: 13px;
+  }
+
+  .new-return-info-box {
+    min-height: 72px;
+    padding: 13px 14px;
+  }
+
+  .new-return-info-box strong {
+    font-size: 13px;
+  }
+
+  .return-products-table-wrapper {
+    margin-left: -15px;
+    margin-right: -15px;
+    width: calc(100% + 30px);
+  }
+
+  .return-products-table {
+    min-width: 720px;
+  }
+
+  .review-return-card {
+    padding: 15px;
+  }
+
+  .summary-card-header h2 {
+    font-size: 19px;
+  }
+
+  .summary-icon {
+    width: 38px;
+    height: 38px;
+    font-size: 18px;
+  }
+
+  .summary-status {
+    margin-top: 18px;
+  }
+
+  .summary-row {
+    min-height: 40px;
+  }
+
+  .summary-row span,
+  .summary-row strong {
+    font-size: 12px;
   }
 
   .summary-total strong {
-    font-size: 18px;
+    font-size: 19px;
+  }
+
+  .review-return-actions {
+    margin-top: 20px;
+    padding-top: 18px;
+  }
+
+  .new-return-cancel-btn,
+  .new-return-submit-btn {
+    min-height: 44px;
+    font-size: 12px;
+  }
+
+  .return-info-card {
+    padding: 15px;
+  }
+}
+
+
+/* =========================================================
+   EXTRA SMALL DEVICES
+   ========================================================= */
+
+@media (max-width: 360px) {
+
+  .new-return-page {
+    padding-left: 10px;
+    padding-right: 10px;
+  }
+
+  .new-return-header h1 {
+    font-size: 22px;
+  }
+
+  .new-return-card-header {
+    padding: 13px;
+  }
+
+  .new-return-card-body {
+    padding: 13px;
+  }
+
+  .review-return-card {
+    padding: 13px;
+  }
+
+  .summary-row {
+    gap: 10px;
+  }
+
+  .summary-row strong {
+    max-width: 50%;
   }
 }

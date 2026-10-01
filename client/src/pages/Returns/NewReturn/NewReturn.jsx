@@ -122,13 +122,10 @@ function NewReturn() {
   );
 
   const formatCurrency = (amount) => {
-    return `₹${Number(amount || 0).toLocaleString(
-      "en-IN",
-      {
-        minimumFractionDigits: 2,
-        maximumFractionDigits: 2,
-      }
-    )}`;
+    return `₹${Number(amount || 0).toLocaleString("en-IN", {
+      minimumFractionDigits: 2,
+      maximumFractionDigits: 2,
+    })}`;
   };
 
   const handleInvoiceChange = (event) => {
@@ -156,10 +153,7 @@ function NewReturn() {
 
     const quantity = Number(value);
 
-    if (
-      Number.isNaN(quantity) ||
-      quantity < 0
-    ) {
+    if (Number.isNaN(quantity) || quantity < 0) {
       return;
     }
 
@@ -185,9 +179,7 @@ function NewReturn() {
       returnQuantities[product.id] || 0
     );
 
-    if (
-      currentQuantity >= product.soldQty
-    ) {
+    if (currentQuantity >= product.soldQty) {
       return;
     }
 
@@ -242,9 +234,7 @@ function NewReturn() {
 
     setErrors(newErrors);
 
-    return (
-      Object.keys(newErrors).length === 0
-    );
+    return Object.keys(newErrors).length === 0;
   };
 
   const handleSubmit = (event) => {
@@ -360,22 +350,15 @@ function NewReturn() {
 
           <div>
             <strong>Return Created</strong>
-
             <p>{successMessage}</p>
           </div>
         </div>
       )}
 
 
-      {/* ================================================= */}
-      {/* MAIN CONTENT */}
-      {/* ================================================= */}
+      {/* ================= MAIN CONTENT ================= */}
 
       <div className="new-return-layout">
-
-        {/* ================================================= */}
-        {/* LEFT COLUMN */}
-        {/* ================================================= */}
 
         <main className="new-return-main">
 
@@ -392,9 +375,7 @@ function NewReturn() {
                 </span>
 
                 <div>
-                  <h2>
-                    Invoice Information
-                  </h2>
+                  <h2>Invoice Information</h2>
 
                   <p>
                     Select the original invoice
@@ -455,8 +436,7 @@ function NewReturn() {
                   <span>Customer</span>
 
                   <strong>
-                    {selectedInvoice?.customer ||
-                      "—"}
+                    {selectedInvoice?.customer || "—"}
                   </strong>
                 </div>
 
@@ -465,8 +445,7 @@ function NewReturn() {
                   <span>Mobile Number</span>
 
                   <strong>
-                    {selectedInvoice?.phone ||
-                      "—"}
+                    {selectedInvoice?.phone || "—"}
                   </strong>
                 </div>
 
@@ -475,13 +454,13 @@ function NewReturn() {
                   <span>Invoice Date</span>
 
                   <strong>
-                    {selectedInvoice?.invoiceDate ||
-                      "—"}
+                    {selectedInvoice?.invoiceDate || "—"}
                   </strong>
                 </div>
 
 
                 <div className="new-return-form-group">
+
                   <label>
                     Return Date
                     <span>*</span>
@@ -491,11 +470,10 @@ function NewReturn() {
                     type="text"
                     value={returnDate}
                     onChange={(event) =>
-                      setReturnDate(
-                        event.target.value
-                      )
+                      setReturnDate(event.target.value)
                     }
                   />
+
                 </div>
 
               </div>
@@ -518,9 +496,7 @@ function NewReturn() {
                 </span>
 
                 <div>
-                  <h2>
-                    Return Items
-                  </h2>
+                  <h2>Return Items</h2>
 
                   <p>
                     Select the products and
@@ -549,9 +525,7 @@ function NewReturn() {
                     ↩
                   </div>
 
-                  <h3>
-                    Select an invoice
-                  </h3>
+                  <h3>Select an invoice</h3>
 
                   <p>
                     Choose an invoice above to
@@ -580,16 +554,12 @@ function NewReturn() {
 
                       {products.map((product) => {
 
-                        const quantity =
-                          Number(
-                            returnQuantities[
-                              product.id
-                            ] || 0
-                          );
+                        const quantity = Number(
+                          returnQuantities[product.id] || 0
+                        );
 
                         const amount =
-                          quantity *
-                          product.unitPrice;
+                          quantity * product.unitPrice;
 
                         return (
                           <tr key={product.id}>
@@ -603,9 +573,10 @@ function NewReturn() {
 
                                 <span>
                                   Product ID: PRD-
-                                  {String(
-                                    product.id
-                                  ).padStart(4, "0")}
+                                  {String(product.id).padStart(
+                                    4,
+                                    "0"
+                                  )}
                                 </span>
 
                               </div>
@@ -624,13 +595,9 @@ function NewReturn() {
                                 <button
                                   type="button"
                                   onClick={() =>
-                                    decreaseQuantity(
-                                      product
-                                    )
+                                    decreaseQuantity(product)
                                   }
-                                  disabled={
-                                    quantity <= 0
-                                  }
+                                  disabled={quantity <= 0}
                                 >
                                   −
                                 </button>
@@ -638,9 +605,7 @@ function NewReturn() {
                                 <input
                                   type="number"
                                   min="0"
-                                  max={
-                                    product.soldQty
-                                  }
+                                  max={product.soldQty}
                                   value={
                                     returnQuantities[
                                       product.id
@@ -657,9 +622,7 @@ function NewReturn() {
                                 <button
                                   type="button"
                                   onClick={() =>
-                                    increaseQuantity(
-                                      product
-                                    )
+                                    increaseQuantity(product)
                                   }
                                   disabled={
                                     quantity >=
@@ -681,9 +644,7 @@ function NewReturn() {
 
                             <td>
                               <strong className="product-return-amount">
-                                {formatCurrency(
-                                  amount
-                                )}
+                                {formatCurrency(amount)}
                               </strong>
                             </td>
 
@@ -716,10 +677,7 @@ function NewReturn() {
           </section>
 
 
-          {/* ================================================= */}
-          {/* SECTION 03 — RETURN DETAILS */}
-          {/* EXACTLY BELOW RETURN ITEMS */}
-          {/* ================================================= */}
+          {/* ================= SECTION 03 ================= */}
 
           <section className="new-return-card return-details-card">
 
@@ -732,9 +690,7 @@ function NewReturn() {
                 </span>
 
                 <div>
-                  <h2>
-                    Return Details
-                  </h2>
+                  <h2>Return Details</h2>
 
                   <p>
                     Provide the reason and refund
@@ -763,9 +719,7 @@ function NewReturn() {
                   <select
                     value={returnReason}
                     onChange={(event) => {
-                      setReturnReason(
-                        event.target.value
-                      );
+                      setReturnReason(event.target.value);
 
                       setErrors((current) => ({
                         ...current,
@@ -815,9 +769,7 @@ function NewReturn() {
                   <select
                     value={refundMethod}
                     onChange={(event) => {
-                      setRefundMethod(
-                        event.target.value
-                      );
+                      setRefundMethod(event.target.value);
 
                       setErrors((current) => ({
                         ...current,
@@ -835,16 +787,14 @@ function NewReturn() {
                       Select Refund Method
                     </option>
 
-                    {refundMethods.map(
-                      (method) => (
-                        <option
-                          key={method}
-                          value={method}
-                        >
-                          {method}
-                        </option>
-                      )
-                    )}
+                    {refundMethods.map((method) => (
+                      <option
+                        key={method}
+                        value={method}
+                      >
+                        {method}
+                      </option>
+                    ))}
 
                   </select>
 
@@ -863,9 +813,7 @@ function NewReturn() {
 
                   <div className="notes-label-row">
 
-                    <label>
-                      Notes
-                    </label>
+                    <label>Notes</label>
 
                     <span>
                       {notes.length}/500
@@ -878,9 +826,7 @@ function NewReturn() {
                     maxLength="500"
                     value={notes}
                     onChange={(event) =>
-                      setNotes(
-                        event.target.value
-                      )
+                      setNotes(event.target.value)
                     }
                     placeholder="Add any additional information about this return..."
                   />
@@ -889,70 +835,24 @@ function NewReturn() {
 
               </div>
 
-
-              {/* ================= ACTION BUTTONS ================= */}
-
-              <div className="return-details-actions">
-
-                <button
-                  type="button"
-                  className="new-return-cancel-btn"
-                  onClick={handleCancel}
-                  disabled={isSubmitting}
-                >
-                  Cancel
-                </button>
-
-                <button
-                  type="button"
-                  className="new-return-submit-btn"
-                  onClick={handleSubmit}
-                  disabled={isSubmitting}
-                >
-
-                  {isSubmitting ? (
-                    <>
-                      <span className="button-spinner" />
-                      Creating Return...
-                    </>
-                  ) : (
-                    <>
-                      Create Return
-                      <span>→</span>
-                    </>
-                  )}
-
-                </button>
-
-              </div>
-
             </div>
 
           </section>
 
-        </main>
 
+          {/* =================================================
+              SECTION 04 — REVIEW RETURN
+              MOVED BELOW RETURN DETAILS
+              ================================================= */}
 
-        {/* ================================================= */}
-        {/* RIGHT SIDEBAR */}
-        {/* ================================================= */}
-
-        <aside className="new-return-sidebar">
-
-          {/* SUMMARY */}
-
-          <div className="return-summary-card">
+          <section className="return-summary-card review-return-card">
 
             <div className="summary-card-header">
 
               <div>
-                <span>
-                  RETURN SUMMARY
-                </span>
+                <span>RETURN SUMMARY</span>
 
-                <h2>
-                  Review Return
-                </h2>
+                <h2>Review Return</h2>
               </div>
 
               <div className="summary-icon">
@@ -966,9 +866,7 @@ function NewReturn() {
 
               <span>Status</span>
 
-              <strong>
-                Pending
-              </strong>
+              <strong>Pending</strong>
 
             </div>
 
@@ -977,39 +875,46 @@ function NewReturn() {
 
 
             <div className="summary-row">
+
               <span>Invoice</span>
 
               <strong>
                 {invoiceId || "—"}
               </strong>
+
             </div>
 
 
             <div className="summary-row">
+
               <span>Customer</span>
 
               <strong>
-                {selectedInvoice?.customer ||
-                  "—"}
+                {selectedInvoice?.customer || "—"}
               </strong>
+
             </div>
 
 
             <div className="summary-row">
+
               <span>Return Items</span>
 
               <strong>
                 {totalItems}
               </strong>
+
             </div>
 
 
             <div className="summary-row">
+
               <span>Refund Method</span>
 
               <strong>
                 {refundMethod || "—"}
               </strong>
+
             </div>
 
 
@@ -1018,22 +923,55 @@ function NewReturn() {
 
             <div className="summary-total">
 
-              <span>
-                Total Refund
-              </span>
+              <span>Total Refund</span>
 
               <strong>
-                {formatCurrency(
-                  totalRefundAmount
-                )}
+                {formatCurrency(totalRefundAmount)}
               </strong>
 
             </div>
 
-          </div>
+
+            {/* ================= ACTION BUTTONS ================= */}
+
+            <div className="review-return-actions">
+
+              <button
+                type="button"
+                className="new-return-cancel-btn"
+                onClick={handleCancel}
+                disabled={isSubmitting}
+              >
+                Cancel
+              </button>
+
+              <button
+                type="button"
+                className="new-return-submit-btn"
+                onClick={handleSubmit}
+                disabled={isSubmitting}
+              >
+
+                {isSubmitting ? (
+                  <>
+                    <span className="button-spinner" />
+                    Creating Return...
+                  </>
+                ) : (
+                  <>
+                    Create Return
+                    <span>→</span>
+                  </>
+                )}
+
+              </button>
+
+            </div>
+
+          </section>
 
 
-          {/* POLICY */}
+          {/* ================= RETURN POLICY ================= */}
 
           <div className="return-info-card">
 
@@ -1043,15 +981,12 @@ function NewReturn() {
 
             <div>
 
-              <strong>
-                Return Policy
-              </strong>
+              <strong>Return Policy</strong>
 
               <p>
-                Please verify the returned
-                items before approving the
-                refund. Return quantities
-                cannot exceed the original
+                Please verify the returned items
+                before approving the refund. Return
+                quantities cannot exceed the original
                 sold quantity.
               </p>
 
@@ -1059,7 +994,7 @@ function NewReturn() {
 
           </div>
 
-        </aside>
+        </main>
 
       </div>
 

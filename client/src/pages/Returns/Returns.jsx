@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import "./Return.css";
 
@@ -69,9 +69,41 @@ function Return() {
   const [status, setStatus] = useState("All Status");
   const [selectedReturn, setSelectedReturn] = useState(null);
 
-  // =========================
+  // =================================================
+  // ESC KEY + BODY SCROLL CONTROL
+  // =================================================
+
+  useEffect(() => {
+    if (!selectedReturn) {
+      document.body.style.overflow = "";
+      return;
+    }
+
+    // Prevent background page scrolling while modal is open
+    document.body.style.overflow = "hidden";
+
+    const handleEscapeKey = (event) => {
+      if (event.key === "Escape") {
+        setSelectedReturn(null);
+      }
+    };
+
+    document.addEventListener("keydown", handleEscapeKey);
+
+    return () => {
+      document.removeEventListener(
+        "keydown",
+        handleEscapeKey
+      );
+
+      // Restore normal page scrolling
+      document.body.style.overflow = "";
+    };
+  }, [selectedReturn]);
+
+  // =================================================
   // FILTER RETURNS
-  // =========================
+  // =================================================
 
   const filteredReturns = useMemo(() => {
     return returns.filter((item) => {
@@ -92,9 +124,9 @@ function Return() {
     });
   }, [returns, search, status]);
 
-  // =========================
+  // =================================================
   // STATISTICS
-  // =========================
+  // =================================================
 
   const totalReturns = returns.length;
 
@@ -118,9 +150,9 @@ function Return() {
     .filter((item) => item.status === "Refunded")
     .reduce((sum, item) => sum + item.amount, 0);
 
-  // =========================
+  // =================================================
   // CURRENCY
-  // =========================
+  // =================================================
 
   const formatCurrency = (amount) => {
     return `₹${Number(amount).toLocaleString("en-IN", {
@@ -129,43 +161,42 @@ function Return() {
     })}`;
   };
 
-  // =========================
+  // =================================================
   // NEW RETURN
-  // =========================
+  // =================================================
 
   const handleNewReturn = () => {
     navigate("/returns/new");
   };
 
-  // =========================
+  // =================================================
   // VIEW RETURN
-  // ONLY VIEW BUTTON OPENS DETAILS
-  // =========================
+  // =================================================
 
   const handleViewReturn = (returnItem) => {
     setSelectedReturn(returnItem);
   };
 
-  // =========================
+  // =================================================
   // CLOSE MODAL
-  // =========================
+  // =================================================
 
   const closeReturnDetails = () => {
     setSelectedReturn(null);
   };
 
-  // =========================
+  // =================================================
   // RESET FILTERS
-  // =========================
+  // =================================================
 
   const resetFilters = () => {
     setSearch("");
     setStatus("All Status");
   };
 
-  // =========================
+  // =================================================
   // APPROVE RETURN
-  // =========================
+  // =================================================
 
   const handleApproveReturn = (returnId) => {
     setReturns((currentReturns) =>
@@ -189,9 +220,9 @@ function Return() {
     );
   };
 
-  // =========================
+  // =================================================
   // REJECT RETURN
-  // =========================
+  // =================================================
 
   const handleRejectReturn = (returnId) => {
     setReturns((currentReturns) =>
@@ -215,9 +246,9 @@ function Return() {
     );
   };
 
-  // =========================
+  // =================================================
   // PROCESS REFUND
-  // =========================
+  // =================================================
 
   const handleProcessRefund = (returnId) => {
     setReturns((currentReturns) =>
@@ -241,21 +272,24 @@ function Return() {
     );
   };
 
-  // =========================
+  // =================================================
   // VIEW INVOICE
-  // =========================
+  // =================================================
 
   const handleViewInvoice = () => {
     if (!selectedReturn) return;
 
     closeReturnDetails();
+
     navigate("/invoices");
   };
 
   return (
     <div className="returns-page">
 
-      {/* ================= HEADER ================= */}
+      {/* =================================================
+          HEADER
+      ================================================= */}
 
       <div className="returns-header">
 
@@ -278,7 +312,9 @@ function Return() {
       </div>
 
 
-      {/* ================= STATISTICS ================= */}
+      {/* =================================================
+          STATISTICS
+      ================================================= */}
 
       <div className="returns-stats">
 
@@ -352,7 +388,9 @@ function Return() {
       </div>
 
 
-      {/* ================= ADDITIONAL SUMMARY ================= */}
+      {/* =================================================
+          ADDITIONAL SUMMARY
+      ================================================= */}
 
       <div className="return-summary-strip">
 
@@ -385,11 +423,13 @@ function Return() {
       </div>
 
 
-      {/* ================= RETURNS TABLE ================= */}
+      {/* =================================================
+          RETURNS TABLE
+      ================================================= */}
 
       <div className="returns-table-card">
 
-        {/* ================= TOOLBAR ================= */}
+        {/* TOOLBAR */}
 
         <div className="returns-toolbar">
 
@@ -450,7 +490,7 @@ function Return() {
         </div>
 
 
-        {/* ================= TABLE ================= */}
+        {/* TABLE */}
 
         <div className="return-table-wrapper">
 
@@ -481,7 +521,7 @@ function Return() {
 
                   <tr key={item.id}>
 
-                    {/* ================= RETURN ID ================= */}
+                    {/* RETURN ID */}
 
                     <td>
                       <span className="return-id-text">
@@ -490,7 +530,7 @@ function Return() {
                     </td>
 
 
-                    {/* ================= INVOICE ID ================= */}
+                    {/* INVOICE ID */}
 
                     <td>
                       <span className="invoice-id-text">
@@ -499,7 +539,7 @@ function Return() {
                     </td>
 
 
-                    {/* ================= CUSTOMER ================= */}
+                    {/* CUSTOMER */}
 
                     <td>
 
@@ -514,7 +554,7 @@ function Return() {
                     </td>
 
 
-                    {/* ================= MOBILE ================= */}
+                    {/* MOBILE */}
 
                     <td>
 
@@ -525,14 +565,14 @@ function Return() {
                     </td>
 
 
-                    {/* ================= DATE ================= */}
+                    {/* DATE */}
 
                     <td>
                       {item.date}
                     </td>
 
 
-                    {/* ================= ITEMS ================= */}
+                    {/* ITEMS */}
 
                     <td>
 
@@ -543,7 +583,7 @@ function Return() {
                     </td>
 
 
-                    {/* ================= AMOUNT ================= */}
+                    {/* AMOUNT */}
 
                     <td>
 
@@ -554,7 +594,7 @@ function Return() {
                     </td>
 
 
-                    {/* ================= STATUS ================= */}
+                    {/* STATUS */}
 
                     <td>
 
@@ -567,7 +607,7 @@ function Return() {
                     </td>
 
 
-                    {/* ================= ACTION ================= */}
+                    {/* ACTION */}
 
                     <td>
 
@@ -632,9 +672,9 @@ function Return() {
       </div>
 
 
-      {/* ================================================= */}
-      {/* RETURN DETAILS MODAL */}
-      {/* ================================================= */}
+      {/* =================================================
+          RETURN DETAILS MODAL
+      ================================================= */}
 
       {selectedReturn && (
 
@@ -648,9 +688,14 @@ function Return() {
             onClick={(e) =>
               e.stopPropagation()
             }
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="return-modal-title"
           >
 
-            {/* ================= MODAL HEADER ================= */}
+            {/* =================================================
+                MODAL HEADER
+            ================================================= */}
 
             <div className="return-modal-header">
 
@@ -660,7 +705,7 @@ function Return() {
                   RETURN DETAILS
                 </span>
 
-                <h2>
+                <h2 id="return-modal-title">
                   {selectedReturn.id}
                 </h2>
 
@@ -676,6 +721,7 @@ function Return() {
                 className="return-modal-close"
                 onClick={closeReturnDetails}
                 aria-label="Close return details"
+                title="Close"
               >
                 ×
               </button>
@@ -683,7 +729,9 @@ function Return() {
             </div>
 
 
-            {/* ================= BASIC DETAILS ================= */}
+            {/* =================================================
+                BASIC DETAILS
+            ================================================= */}
 
             <div className="return-detail-grid">
 
@@ -785,7 +833,9 @@ function Return() {
             </div>
 
 
-            {/* ================= RETURN SUMMARY ================= */}
+            {/* =================================================
+                RETURN SUMMARY
+            ================================================= */}
 
             <div className="return-summary-section">
 
@@ -820,7 +870,10 @@ function Return() {
 
                   <span>
                     {selectedReturn.items} product
-                    {selectedReturn.items > 1 ? "s" : ""} included
+                    {selectedReturn.items > 1
+                      ? "s"
+                      : ""}{" "}
+                    included
                   </span>
 
                 </div>
@@ -834,7 +887,9 @@ function Return() {
             </div>
 
 
-            {/* ================= REFUND DETAILS ================= */}
+            {/* =================================================
+                REFUND DETAILS
+            ================================================= */}
 
             <div className="refund-details-section">
 
@@ -879,7 +934,9 @@ function Return() {
             </div>
 
 
-            {/* ================= NOTES ================= */}
+            {/* =================================================
+                NOTES
+            ================================================= */}
 
             <div className="return-notes">
 
@@ -895,9 +952,13 @@ function Return() {
             </div>
 
 
-            {/* ================= MODAL ACTIONS ================= */}
+            {/* =================================================
+                MODAL ACTIONS
+            ================================================= */}
 
             <div className="return-modal-footer">
+
+              {/* CLOSE */}
 
               <button
                 type="button"
@@ -908,7 +969,7 @@ function Return() {
               </button>
 
 
-              {/* Pending Actions */}
+              {/* PENDING ACTIONS */}
 
               {selectedReturn.status === "Pending" && (
 
@@ -944,7 +1005,7 @@ function Return() {
               )}
 
 
-              {/* Approved Action */}
+              {/* APPROVED ACTION */}
 
               {selectedReturn.status === "Approved" && (
 
@@ -963,7 +1024,7 @@ function Return() {
               )}
 
 
-              {/* Refunded Action */}
+              {/* REFUNDED ACTION */}
 
               {selectedReturn.status === "Refunded" && (
 
