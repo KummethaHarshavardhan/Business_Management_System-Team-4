@@ -2,11 +2,12 @@ import mongoose from 'mongoose'
 import Sale from '../model/sale.js'
 import { calculateBill } from '../utils/calculateBill.js'
 import { decreaseStock, increaseStock } from '../services/stockService.js'
+import { getCustomer } from '../services/customerService.js'
 
-const rollbackStock = async (decreasedItems) => {
+const rollbackStock = async (decreasedItems, token) => {
     for (const item of decreasedItems) {
         try {
-            await increaseStock(item.product, item.quantity);
+            await increaseStock(item.product, item.quantity, token);
         } catch (error) {
             console.error(`Stock rollback failed for product ${item.product}:`, error.message);
         }
@@ -18,6 +19,12 @@ export const createSale = async (req, res) => {
 
     try {
         const { customer, items, discount, taxRate, paymentMethod, paymentStatus } = req.body;
+
+        try {
+            await getCustomer(customer, req.headers.authorization);
+        } catch (error) {
+            return res.status(404).json({ message: 'Customer not found' });
+        }
 
         const billItems = items.map((item) => {
             const product = req.products[item.product];
@@ -52,7 +59,7 @@ export const createSale = async (req, res) => {
         const sale = await Sale.create(saleData);
         return res.status(201).json(sale);
     } catch (error) {
-        await rollbackStock(decreased);
+        await rollbackStock(decreased, req.headers.authorization);
         return res.status(500).json({ message: error.message });
     }
 };

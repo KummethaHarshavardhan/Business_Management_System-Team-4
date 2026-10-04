@@ -14,6 +14,15 @@ jest.unstable_mockModule('../services/stockService.js', () => ({
     increaseStock: mockIncreaseStock,
 }));
 
+
+const USER_ID = '665f1a2b3c4d5e6f7a8b9c20';
+jest.unstable_mockModule('../middleware/verifyToken.js', () => ({
+    default: (req, res, next) => {
+        req.user = { _id: USER_ID };
+        next();
+    },
+}));
+
 const { default: saleRoutes } = await import('../routes/saleRoutes.js');
 
 const app = express();
