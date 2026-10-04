@@ -1,138 +1,17 @@
-import { useEffect, useMemo, useState } from "react";
+import { useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import "./Invoices.css";
-
-const defaultInvoices = [
-  {
-    id: "INV-0001",
-    customer: "Walk-in Customer",
-    phone: "9876543210",
-    date: "28 Sep 2026",
-    items: [
-      {
-        productName: "Monitor",
-        quantity: 1,
-        price: 12500,
-        total: 12500,
-      },
-    ],
-    subtotal: 12500,
-    discountAmount: 0,
-    taxAmount: 0,
-    grandTotal: 12500,
-    paymentMethod: "UPI",
-    paymentStatus: "Paid",
-  },
-
-  {
-    id: "INV-0002",
-    customer: "Rahul Kumar",
-    phone: "9123456780",
-    date: "27 Sep 2026",
-    items: [
-      {
-        productName: "Wireless Keyboard",
-        quantity: 2,
-        price: 1500,
-        total: 3000,
-      },
-      {
-        productName: "USB Mouse",
-        quantity: 1,
-        price: 800,
-        total: 800,
-      },
-    ],
-    subtotal: 3800,
-    discountAmount: 0,
-    taxAmount: 0,
-    grandTotal: 3800,
-    paymentMethod: "Cash",
-    paymentStatus: "Paid",
-  },
-
-  {
-    id: "INV-0003",
-    customer: "Priya Sharma",
-    phone: "9988776655",
-    date: "26 Sep 2026",
-    items: [
-      {
-        productName: "Laptop Stand",
-        quantity: 2,
-        price: 2200,
-        total: 4400,
-      },
-    ],
-    subtotal: 4400,
-    discountAmount: 0,
-    taxAmount: 0,
-    grandTotal: 4400,
-    paymentMethod: "Credit",
-    paymentStatus: "Pending",
-  },
-];
 
 function Invoices() {
   const navigate = useNavigate();
 
+  // Backend API data will be populated here later
   const [invoices, setInvoices] = useState([]);
+
   const [search, setSearch] = useState("");
   const [status, setStatus] = useState("All");
   const [selectedInvoice, setSelectedInvoice] =
     useState(null);
-
-  /* =====================================================
-     LOAD INVOICES
-  ===================================================== */
-
-  useEffect(() => {
-    const savedInvoices = JSON.parse(
-      localStorage.getItem("invoices") || "[]"
-    );
-
-    if (savedInvoices.length > 0) {
-      setInvoices([
-        ...defaultInvoices,
-        ...savedInvoices,
-      ]);
-    } else {
-      setInvoices(defaultInvoices);
-    }
-  }, []);
-
-  /* =====================================================
-     ESC KEY
-  ===================================================== */
-
-  useEffect(() => {
-    if (!selectedInvoice) {
-      document.body.style.overflow = "";
-      return;
-    }
-
-    document.body.style.overflow = "hidden";
-
-    const handleEscape = (event) => {
-      if (event.key === "Escape") {
-        setSelectedInvoice(null);
-      }
-    };
-
-    document.addEventListener(
-      "keydown",
-      handleEscape
-    );
-
-    return () => {
-      document.removeEventListener(
-        "keydown",
-        handleEscape
-      );
-
-      document.body.style.overflow = "";
-    };
-  }, [selectedInvoice]);
 
   /* =====================================================
      FILTER
@@ -144,18 +23,30 @@ function Invoices() {
         .toLowerCase()
         .trim();
 
+      const invoiceId = String(
+        invoice.id || ""
+      ).toLowerCase();
+
+      const customer = String(
+        invoice.customer || ""
+      ).toLowerCase();
+
+      const phone = String(
+        invoice.phone || ""
+      );
+
+      const paymentStatus = String(
+        invoice.paymentStatus || ""
+      );
+
       const matchesSearch =
-        invoice.id
-          .toLowerCase()
-          .includes(searchText) ||
-        invoice.customer
-          .toLowerCase()
-          .includes(searchText) ||
-        invoice.phone.includes(searchText);
+        invoiceId.includes(searchText) ||
+        customer.includes(searchText) ||
+        phone.includes(searchText);
 
       const matchesStatus =
         status === "All" ||
-        invoice.paymentStatus === status;
+        paymentStatus === status;
 
       return matchesSearch && matchesStatus;
     });
@@ -210,10 +101,14 @@ function Invoices() {
 
   const handleViewInvoice = (invoice) => {
     setSelectedInvoice(invoice);
+
+    document.body.style.overflow = "hidden";
   };
 
   const closeInvoiceDetails = () => {
     setSelectedInvoice(null);
+
+    document.body.style.overflow = "";
   };
 
   const resetFilters = () => {
@@ -552,7 +447,9 @@ function Invoices() {
                       <td>
 
                         <span
-                          className={`payment-badge ${invoice.paymentStatus.toLowerCase()}`}
+                          className={`payment-badge ${String(
+                            invoice.paymentStatus || ""
+                          ).toLowerCase()}`}
                         >
                           {invoice.paymentStatus}
                         </span>
@@ -629,7 +526,6 @@ function Invoices() {
 
       {/* =====================================================
           INVOICE DETAILS MODAL
-          SALES STYLE
       ===================================================== */}
 
       {selectedInvoice && (
@@ -668,8 +564,6 @@ function Invoices() {
 
               </div>
 
-
-              {/* X - TOP RIGHT */}
 
               <button
                 type="button"
@@ -748,7 +642,9 @@ function Invoices() {
                 </span>
 
                 <span
-                  className={`status-badge ${selectedInvoice.paymentStatus.toLowerCase()}`}
+                  className={`status-badge ${String(
+                    selectedInvoice.paymentStatus || ""
+                  ).toLowerCase()}`}
                 >
                   {selectedInvoice.paymentStatus}
                 </span>
@@ -791,7 +687,7 @@ function Invoices() {
 
                     <div
                       className="sale-item-row"
-                      key={`${item.productName}-${index}`}
+                      key={`${item.productName || "item"}-${index}`}
                     >
 
                       <div>
@@ -925,7 +821,6 @@ function Invoices() {
 
             {/* =================================================
                 FOOTER
-                CLOSE + PRINT/DOWNLOAD
             ================================================= */}
 
             <div className="sale-modal-footer">

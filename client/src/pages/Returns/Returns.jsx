@@ -2,69 +2,12 @@ import { useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import "./Return.css";
 
-const initialReturns = [
-  {
-    id: "RET-0001",
-    invoiceId: "INV-0021",
-    saleId: "SALE-0001",
-    customer: "Rahul Kumar",
-    phone: "9123456780",
-    date: "28 Sep 2026",
-    items: 2,
-    amount: 2500,
-    reason: "Damaged Product",
-    refundMethod: "Original Payment",
-    status: "Pending",
-    notes: "Product received in damaged condition.",
-  },
-  {
-    id: "RET-0002",
-    invoiceId: "INV-0018",
-    saleId: "SALE-0002",
-    customer: "Priya Sharma",
-    phone: "9988776655",
-    date: "27 Sep 2026",
-    items: 1,
-    amount: 1200,
-    reason: "Wrong Product",
-    refundMethod: "UPI",
-    status: "Approved",
-    notes: "Wrong product was delivered to the customer.",
-  },
-  {
-    id: "RET-0003",
-    invoiceId: "INV-0015",
-    saleId: "SALE-0003",
-    customer: "Arun Kumar",
-    phone: "9876543211",
-    date: "25 Sep 2026",
-    items: 3,
-    amount: 4800,
-    reason: "Customer Changed Mind",
-    refundMethod: "Cash",
-    status: "Refunded",
-    notes: "Return accepted and refund completed.",
-  },
-  {
-    id: "RET-0004",
-    invoiceId: "INV-0012",
-    saleId: "SALE-0004",
-    customer: "Sneha Reddy",
-    phone: "9012345678",
-    date: "24 Sep 2026",
-    items: 1,
-    amount: 1800,
-    reason: "Defective Product",
-    refundMethod: "Original Payment",
-    status: "Rejected",
-    notes: "Return request does not meet return policy.",
-  },
-];
-
 function Return() {
   const navigate = useNavigate();
 
-  const [returns, setReturns] = useState(initialReturns);
+  // Backend data will be loaded here later.
+  const [returns, setReturns] = useState([]);
+
   const [search, setSearch] = useState("");
   const [status, setStatus] = useState("All Status");
   const [selectedReturn, setSelectedReturn] = useState(null);
@@ -110,11 +53,19 @@ function Return() {
       const searchText = search.toLowerCase().trim();
 
       const matchesSearch =
-        item.id.toLowerCase().includes(searchText) ||
-        item.invoiceId.toLowerCase().includes(searchText) ||
-        item.saleId.toLowerCase().includes(searchText) ||
-        item.customer.toLowerCase().includes(searchText) ||
-        item.phone.includes(searchText);
+        String(item.id || "")
+          .toLowerCase()
+          .includes(searchText) ||
+        String(item.invoiceId || "")
+          .toLowerCase()
+          .includes(searchText) ||
+        String(item.saleId || "")
+          .toLowerCase()
+          .includes(searchText) ||
+        String(item.customer || "")
+          .toLowerCase()
+          .includes(searchText) ||
+        String(item.phone || "").includes(searchText);
 
       const matchesStatus =
         status === "All Status" ||
@@ -148,14 +99,17 @@ function Return() {
 
   const totalRefundAmount = returns
     .filter((item) => item.status === "Refunded")
-    .reduce((sum, item) => sum + item.amount, 0);
+    .reduce(
+      (sum, item) => sum + Number(item.amount || 0),
+      0
+    );
 
   // =================================================
   // CURRENCY
   // =================================================
 
   const formatCurrency = (amount) => {
-    return `₹${Number(amount).toLocaleString("en-IN", {
+    return `₹${Number(amount || 0).toLocaleString("en-IN", {
       minimumFractionDigits: 2,
       maximumFractionDigits: 2,
     })}`;
@@ -218,6 +172,13 @@ function Return() {
           }
         : null
     );
+
+    /*
+      Backend integration will be added here.
+
+      Example:
+      PUT /api/returns/:returnId/approve
+    */
   };
 
   // =================================================
@@ -244,6 +205,13 @@ function Return() {
           }
         : null
     );
+
+    /*
+      Backend integration will be added here.
+
+      Example:
+      PUT /api/returns/:returnId/reject
+    */
   };
 
   // =================================================
@@ -270,6 +238,13 @@ function Return() {
           }
         : null
     );
+
+    /*
+      Backend integration will be added here.
+
+      Example:
+      PUT /api/returns/:returnId/refund
+    */
   };
 
   // =================================================
@@ -311,7 +286,6 @@ function Return() {
 
       </div>
 
-
       {/* =================================================
           STATISTICS
       ================================================= */}
@@ -334,7 +308,6 @@ function Return() {
 
         </div>
 
-
         <div className="return-stat-card">
 
           <div className="return-stat-icon orange">
@@ -351,7 +324,6 @@ function Return() {
 
         </div>
 
-
         <div className="return-stat-card">
 
           <div className="return-stat-icon blue">
@@ -367,7 +339,6 @@ function Return() {
           </div>
 
         </div>
-
 
         <div className="return-stat-card">
 
@@ -387,7 +358,6 @@ function Return() {
 
       </div>
 
-
       {/* =================================================
           ADDITIONAL SUMMARY
       ================================================= */}
@@ -402,7 +372,6 @@ function Return() {
           </strong>
         </div>
 
-
         <div>
           <span>Rejected Returns</span>
 
@@ -410,7 +379,6 @@ function Return() {
             {rejectedReturns}
           </strong>
         </div>
-
 
         <div>
           <span>Total Refund Value</span>
@@ -421,7 +389,6 @@ function Return() {
         </div>
 
       </div>
-
 
       {/* =================================================
           RETURNS TABLE
@@ -447,7 +414,6 @@ function Return() {
             />
 
           </div>
-
 
           <select
             value={status}
@@ -478,7 +444,6 @@ function Return() {
 
           </select>
 
-
           <button
             type="button"
             className="return-filter-btn"
@@ -488,7 +453,6 @@ function Return() {
           </button>
 
         </div>
-
 
         {/* TABLE */}
 
@@ -512,7 +476,6 @@ function Return() {
 
             </thead>
 
-
             <tbody>
 
               {filteredReturns.length > 0 ? (
@@ -529,7 +492,6 @@ function Return() {
                       </span>
                     </td>
 
-
                     {/* INVOICE ID */}
 
                     <td>
@@ -537,7 +499,6 @@ function Return() {
                         {item.invoiceId}
                       </span>
                     </td>
-
 
                     {/* CUSTOMER */}
 
@@ -553,7 +514,6 @@ function Return() {
 
                     </td>
 
-
                     {/* MOBILE */}
 
                     <td>
@@ -564,13 +524,11 @@ function Return() {
 
                     </td>
 
-
                     {/* DATE */}
 
                     <td>
                       {item.date}
                     </td>
-
 
                     {/* ITEMS */}
 
@@ -582,7 +540,6 @@ function Return() {
 
                     </td>
 
-
                     {/* AMOUNT */}
 
                     <td>
@@ -593,19 +550,21 @@ function Return() {
 
                     </td>
 
-
                     {/* STATUS */}
 
                     <td>
 
                       <span
-                        className={`return-status-badge ${item.status.toLowerCase()}`}
+                        className={`return-status-badge ${
+                          item.status
+                            ? item.status.toLowerCase()
+                            : ""
+                        }`}
                       >
                         {item.status}
                       </span>
 
                     </td>
-
 
                     {/* ACTION */}
 
@@ -671,7 +630,6 @@ function Return() {
 
       </div>
 
-
       {/* =================================================
           RETURN DETAILS MODAL
       ================================================= */}
@@ -715,7 +673,6 @@ function Return() {
 
               </div>
 
-
               <button
                 type="button"
                 className="return-modal-close"
@@ -727,7 +684,6 @@ function Return() {
               </button>
 
             </div>
-
 
             {/* =================================================
                 BASIC DETAILS
@@ -753,7 +709,6 @@ function Return() {
 
               </div>
 
-
               {/* Return Date */}
 
               <div className="return-detail-box">
@@ -767,7 +722,6 @@ function Return() {
                 </strong>
 
               </div>
-
 
               {/* Invoice */}
 
@@ -783,7 +737,6 @@ function Return() {
 
               </div>
 
-
               {/* Sale */}
 
               <div className="return-detail-box">
@@ -797,7 +750,6 @@ function Return() {
                 </strong>
 
               </div>
-
 
               {/* Reason */}
 
@@ -813,7 +765,6 @@ function Return() {
 
               </div>
 
-
               {/* Status */}
 
               <div className="return-detail-box">
@@ -823,7 +774,11 @@ function Return() {
                 </span>
 
                 <span
-                  className={`return-status-badge ${selectedReturn.status.toLowerCase()}`}
+                  className={`return-status-badge ${
+                    selectedReturn.status
+                      ? selectedReturn.status.toLowerCase()
+                      : ""
+                  }`}
                 >
                   {selectedReturn.status}
                 </span>
@@ -831,7 +786,6 @@ function Return() {
               </div>
 
             </div>
-
 
             {/* =================================================
                 RETURN SUMMARY
@@ -859,7 +813,6 @@ function Return() {
 
               </div>
 
-
               <div className="return-product-row">
 
                 <div>
@@ -886,7 +839,6 @@ function Return() {
 
             </div>
 
-
             {/* =================================================
                 REFUND DETAILS
             ================================================= */}
@@ -905,7 +857,6 @@ function Return() {
 
               </div>
 
-
               <div className="refund-detail-row">
 
                 <span>
@@ -917,7 +868,6 @@ function Return() {
                 </strong>
 
               </div>
-
 
               <div className="refund-detail-row">
 
@@ -932,7 +882,6 @@ function Return() {
               </div>
 
             </div>
-
 
             {/* =================================================
                 NOTES
@@ -951,7 +900,6 @@ function Return() {
 
             </div>
 
-
             {/* =================================================
                 MODAL ACTIONS
             ================================================= */}
@@ -967,7 +915,6 @@ function Return() {
               >
                 Close
               </button>
-
 
               {/* PENDING ACTIONS */}
 
@@ -987,7 +934,6 @@ function Return() {
                     Reject Return
                   </button>
 
-
                   <button
                     type="button"
                     className="return-approve-btn"
@@ -1003,7 +949,6 @@ function Return() {
                 </>
 
               )}
-
 
               {/* APPROVED ACTION */}
 
@@ -1022,7 +967,6 @@ function Return() {
                 </button>
 
               )}
-
 
               {/* REFUNDED ACTION */}
 

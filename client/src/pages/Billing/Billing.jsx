@@ -1,52 +1,11 @@
 import { useMemo, useState } from "react";
 import "./Billing.css";
 
-const demoCustomers = [
-  {
-    id: "CUST001",
-    name: "Rahul Kumar",
-    phone: "9876543210",
-  },
-  {
-    id: "CUST002",
-    name: "Priya Sharma",
-    phone: "9123456780",
-  },
-  {
-    id: "CUST003",
-    name: "Arjun Reddy",
-    phone: "9988776655",
-  },
-];
-
-const demoProducts = [
-  {
-    id: "PROD001",
-    name: "Laptop",
-    price: 55000,
-    stock: 8,
-  },
-  {
-    id: "PROD002",
-    name: "Wireless Mouse",
-    price: 850,
-    stock: 25,
-  },
-  {
-    id: "PROD003",
-    name: "Keyboard",
-    price: 1500,
-    stock: 15,
-  },
-  {
-    id: "PROD004",
-    name: "Monitor",
-    price: 12000,
-    stock: 10,
-  },
-];
-
 function Billing() {
+  // Backend API data will be populated here later
+  const customers = [];
+  const products = [];
+
   const [customerId, setCustomerId] = useState("");
   const [productId, setProductId] = useState("");
   const [quantity, setQuantity] = useState(1);
@@ -61,11 +20,11 @@ function Billing() {
   const [paymentMethod, setPaymentMethod] = useState("Cash");
   const [paymentStatus, setPaymentStatus] = useState("Paid");
 
-  const selectedProduct = demoProducts.find(
+  const selectedProduct = products.find(
     (product) => product.id === productId
   );
 
-  const selectedCustomer = demoCustomers.find(
+  const selectedCustomer = customers.find(
     (customer) => customer.id === customerId
   );
 
@@ -94,10 +53,13 @@ function Billing() {
     );
 
     if (existingItem) {
-      const updatedQuantity = existingItem.quantity + Number(quantity);
+      const updatedQuantity =
+        existingItem.quantity + Number(quantity);
 
       if (updatedQuantity > selectedProduct.stock) {
-        alert(`Only ${selectedProduct.stock} units are available.`);
+        alert(
+          `Only ${selectedProduct.stock} units are available.`
+        );
         return;
       }
 
@@ -120,7 +82,8 @@ function Billing() {
           productName: selectedProduct.name,
           quantity: Number(quantity),
           price: selectedProduct.price,
-          total: Number(quantity) * selectedProduct.price,
+          total:
+            Number(quantity) * selectedProduct.price,
           stock: selectedProduct.stock,
         },
       ]);
@@ -135,15 +98,25 @@ function Billing() {
   ========================= */
 
   const handleRemoveItem = (productId) => {
-    setCart(cart.filter((item) => item.productId !== productId));
+    setCart(
+      cart.filter(
+        (item) => item.productId !== productId
+      )
+    );
   };
 
   /* =========================
      UPDATE QUANTITY
   ========================= */
 
-  const handleQuantityChange = (productId, newQuantity) => {
-    const item = cart.find((cartItem) => cartItem.productId === productId);
+  const handleQuantityChange = (
+    productId,
+    newQuantity
+  ) => {
+    const item = cart.find(
+      (cartItem) =>
+        cartItem.productId === productId
+    );
 
     if (!item) return;
 
@@ -152,7 +125,9 @@ function Billing() {
     if (value < 1) return;
 
     if (value > item.stock) {
-      alert(`Only ${item.stock} units are available.`);
+      alert(
+        `Only ${item.stock} units are available.`
+      );
       return;
     }
 
@@ -174,32 +149,49 @@ function Billing() {
   ========================= */
 
   const subtotal = useMemo(() => {
-    return cart.reduce((sum, item) => sum + item.total, 0);
+    return cart.reduce(
+      (sum, item) => sum + item.total,
+      0
+    );
   }, [cart]);
 
   const discountAmount = useMemo(() => {
-    const value = Number(discountValue) || 0;
+    const value =
+      Number(discountValue) || 0;
 
     if (value <= 0) return 0;
 
     if (discountType === "percentage") {
-      return Math.min((subtotal * value) / 100, subtotal);
+      return Math.min(
+        (subtotal * value) / 100,
+        subtotal
+      );
     }
 
     return Math.min(value, subtotal);
-  }, [subtotal, discountType, discountValue]);
+  }, [
+    subtotal,
+    discountType,
+    discountValue,
+  ]);
 
-  const taxableAmount = Math.max(subtotal - discountAmount, 0);
+  const taxableAmount = Math.max(
+    subtotal - discountAmount,
+    0
+  );
 
   const taxAmount = useMemo(() => {
     const value = Number(tax) || 0;
 
     if (value <= 0) return 0;
 
-    return (taxableAmount * value) / 100;
+    return (
+      (taxableAmount * value) / 100
+    );
   }, [taxableAmount, tax]);
 
-  const grandTotal = taxableAmount + taxAmount;
+  const grandTotal =
+    taxableAmount + taxAmount;
 
   /* =========================
      CREATE SALE
@@ -246,8 +238,16 @@ function Billing() {
 
     alert("Sale created successfully!");
 
-    // Later:
+    // Backend integration:
     // POST /api/sales
+  };
+
+  /* =========================
+     CANCEL
+  ========================= */
+
+  const handleCancel = () => {
+    window.history.back();
   };
 
   return (
@@ -260,12 +260,15 @@ function Billing() {
       <div className="billing-header">
         <div>
           <h2>Create New Sale</h2>
-          <p>Create a sale, calculate the bill and record payment.</p>
+          <p>
+            Create a sale, calculate the bill and
+            record payment.
+          </p>
         </div>
 
         <div className="invoice-preview">
           <span>Invoice</span>
-          <strong>INV-0001</strong>
+          <strong>Invoice will be generated</strong>
         </div>
       </div>
 
@@ -280,7 +283,9 @@ function Billing() {
 
           <div>
             <h3>Customer Information</h3>
-            <p>Select the customer for this sale.</p>
+            <p>
+              Select the customer for this sale.
+            </p>
           </div>
         </div>
 
@@ -291,13 +296,21 @@ function Billing() {
 
             <select
               value={customerId}
-              onChange={(e) => setCustomerId(e.target.value)}
+              onChange={(e) =>
+                setCustomerId(e.target.value)
+              }
             >
-              <option value="">Select customer</option>
+              <option value="">
+                Select customer
+              </option>
 
-              {demoCustomers.map((customer) => (
-                <option key={customer.id} value={customer.id}>
-                  {customer.name} - {customer.phone}
+              {customers.map((customer) => (
+                <option
+                  key={customer.id}
+                  value={customer.id}
+                >
+                  {customer.name} -{" "}
+                  {customer.phone}
                 </option>
               ))}
             </select>
@@ -306,8 +319,14 @@ function Billing() {
           {selectedCustomer && (
             <div className="customer-preview">
               <span>Selected Customer</span>
-              <strong>{selectedCustomer.name}</strong>
-              <small>{selectedCustomer.phone}</small>
+
+              <strong>
+                {selectedCustomer.name}
+              </strong>
+
+              <small>
+                {selectedCustomer.phone}
+              </small>
             </div>
           )}
 
@@ -326,7 +345,11 @@ function Billing() {
 
           <div>
             <h3>Add Products</h3>
-            <p>Select products and add them to the sale.</p>
+
+            <p>
+              Select products and add them to the
+              sale.
+            </p>
           </div>
         </div>
 
@@ -337,14 +360,23 @@ function Billing() {
 
             <select
               value={productId}
-              onChange={(e) => setProductId(e.target.value)}
+              onChange={(e) =>
+                setProductId(e.target.value)
+              }
             >
-              <option value="">Select product</option>
+              <option value="">
+                Select product
+              </option>
 
-              {demoProducts.map((product) => (
-                <option key={product.id} value={product.id}>
+              {products.map((product) => (
+                <option
+                  key={product.id}
+                  value={product.id}
+                >
                   {product.name} - ₹
-                  {product.price.toLocaleString("en-IN")}
+                  {Number(
+                    product.price || 0
+                  ).toLocaleString("en-IN")}
                 </option>
               ))}
             </select>
@@ -357,7 +389,9 @@ function Billing() {
               type="number"
               min="1"
               value={quantity}
-              onChange={(e) => setQuantity(e.target.value)}
+              onChange={(e) =>
+                setQuantity(e.target.value)
+              }
             />
           </div>
 
@@ -365,7 +399,10 @@ function Billing() {
             {selectedProduct ? (
               <>
                 <span>Available Stock</span>
-                <strong>{selectedProduct.stock}</strong>
+
+                <strong>
+                  {selectedProduct.stock}
+                </strong>
               </>
             ) : (
               <span>Select a product</span>
@@ -395,15 +432,25 @@ function Billing() {
 
           <div>
             <h3>Order Summary</h3>
-            <p>Review products added to this sale.</p>
+
+            <p>
+              Review products added to this sale.
+            </p>
           </div>
         </div>
 
         {cart.length === 0 ? (
           <div className="cart-empty">
-            <div className="cart-empty-icon">▤</div>
+            <div className="cart-empty-icon">
+              ▤
+            </div>
+
             <h4>No products added</h4>
-            <p>Add products above to create the sale.</p>
+
+            <p>
+              Add products above to create the
+              sale.
+            </p>
           </div>
         ) : (
           <div className="cart-table-wrapper">
@@ -429,11 +476,17 @@ function Billing() {
                       <div className="product-name">
                         {item.productName}
                       </div>
-                      <small>{item.productId}</small>
+
+                      <small>
+                        {item.productId}
+                      </small>
                     </td>
 
                     <td>
-                      ₹{item.price.toLocaleString("en-IN")}
+                      ₹
+                      {Number(
+                        item.price || 0
+                      ).toLocaleString("en-IN")}
                     </td>
 
                     <td>
@@ -453,7 +506,10 @@ function Billing() {
                     </td>
 
                     <td className="item-total">
-                      ₹{item.total.toLocaleString("en-IN")}
+                      ₹
+                      {Number(
+                        item.total || 0
+                      ).toLocaleString("en-IN")}
                     </td>
 
                     <td>
@@ -461,7 +517,9 @@ function Billing() {
                         type="button"
                         className="remove-button"
                         onClick={() =>
-                          handleRemoveItem(item.productId)
+                          handleRemoveItem(
+                            item.productId
+                          )
                         }
                       >
                         ×
@@ -493,7 +551,10 @@ function Billing() {
 
             <div>
               <h3>Bill Calculation</h3>
-              <p>Apply discount and tax.</p>
+
+              <p>
+                Apply discount and tax.
+              </p>
             </div>
           </div>
 
@@ -502,12 +563,16 @@ function Billing() {
             <div className="discount-row">
 
               <div className="form-group">
-                <label>Discount Type</label>
+                <label>
+                  Discount Type
+                </label>
 
                 <select
                   value={discountType}
                   onChange={(e) =>
-                    setDiscountType(e.target.value)
+                    setDiscountType(
+                      e.target.value
+                    )
                   }
                 >
                   <option value="percentage">
@@ -521,14 +586,18 @@ function Billing() {
               </div>
 
               <div className="form-group">
-                <label>Discount Value</label>
+                <label>
+                  Discount Value
+                </label>
 
                 <input
                   type="number"
                   min="0"
                   value={discountValue}
                   onChange={(e) =>
-                    setDiscountValue(e.target.value)
+                    setDiscountValue(
+                      e.target.value
+                    )
                   }
                 />
               </div>
@@ -542,7 +611,9 @@ function Billing() {
                 type="number"
                 min="0"
                 value={tax}
-                onChange={(e) => setTax(e.target.value)}
+                onChange={(e) =>
+                  setTax(e.target.value)
+                }
               />
             </div>
 
@@ -552,30 +623,43 @@ function Billing() {
 
             <div>
               <span>Subtotal</span>
+
               <strong>
-                ₹{subtotal.toLocaleString("en-IN", {
-                  minimumFractionDigits: 2,
-                })}
+                ₹
+                {subtotal.toLocaleString(
+                  "en-IN",
+                  {
+                    minimumFractionDigits: 2,
+                  }
+                )}
               </strong>
             </div>
 
             <div>
               <span>Discount</span>
+
               <strong className="discount-text">
                 - ₹
-                {discountAmount.toLocaleString("en-IN", {
-                  minimumFractionDigits: 2,
-                })}
+                {discountAmount.toLocaleString(
+                  "en-IN",
+                  {
+                    minimumFractionDigits: 2,
+                  }
+                )}
               </strong>
             </div>
 
             <div>
               <span>Tax</span>
+
               <strong>
                 ₹
-                {taxAmount.toLocaleString("en-IN", {
-                  minimumFractionDigits: 2,
-                })}
+                {taxAmount.toLocaleString(
+                  "en-IN",
+                  {
+                    minimumFractionDigits: 2,
+                  }
+                )}
               </strong>
             </div>
 
@@ -584,9 +668,12 @@ function Billing() {
 
               <strong>
                 ₹
-                {grandTotal.toLocaleString("en-IN", {
-                  minimumFractionDigits: 2,
-                })}
+                {grandTotal.toLocaleString(
+                  "en-IN",
+                  {
+                    minimumFractionDigits: 2,
+                  }
+                )}
               </strong>
             </div>
 
@@ -605,61 +692,133 @@ function Billing() {
 
             <div>
               <h3>Payment Details</h3>
-              <p>Record payment information.</p>
+
+              <p>
+                Record payment information.
+              </p>
             </div>
           </div>
 
           <div className="form-group">
-            <label>Payment Method</label>
+            <label>
+              Payment Method
+            </label>
 
             <select
               value={paymentMethod}
               onChange={(e) =>
-                setPaymentMethod(e.target.value)
+                setPaymentMethod(
+                  e.target.value
+                )
               }
             >
-              <option value="Cash">Cash</option>
-              <option value="UPI">UPI</option>
-              <option value="Card">Card</option>
+              <option value="Cash">
+                Cash
+              </option>
+
+              <option value="UPI">
+                UPI
+              </option>
+
+              <option value="Card">
+                Card
+              </option>
+
               <option value="BankTransfer">
                 Bank Transfer
               </option>
-              <option value="Credit">Credit</option>
+
+              <option value="Credit">
+                Credit
+              </option>
             </select>
           </div>
 
           <div className="form-group">
-            <label>Payment Status</label>
+            <label>
+              Payment Status
+            </label>
 
             <select
               value={paymentStatus}
               onChange={(e) =>
-                setPaymentStatus(e.target.value)
+                setPaymentStatus(
+                  e.target.value
+                )
               }
             >
-              <option value="Paid">Paid</option>
-              <option value="Pending">Pending</option>
-              <option value="Partial">Partial</option>
+              <option value="Paid">
+                Paid
+              </option>
+
+              <option value="Pending">
+                Pending
+              </option>
+
+              <option value="Partial">
+                Partial
+              </option>
             </select>
           </div>
 
           <div className="payment-total">
-            <span>Amount Payable</span>
+            <span>
+              Amount Payable
+            </span>
+
             <strong>
               ₹
-              {grandTotal.toLocaleString("en-IN", {
-                minimumFractionDigits: 2,
-              })}
+              {grandTotal.toLocaleString(
+                "en-IN",
+                {
+                  minimumFractionDigits: 2,
+                }
+              )}
             </strong>
           </div>
 
-          <button
-            type="button"
-            className="create-sale-button"
-            onClick={handleCreateSale}
+          {/* =========================
+              ACTION BUTTONS
+          ========================= */}
+
+          <div
+            style={{
+              display: "flex",
+              gap: "12px",
+              width: "100%",
+            }}
           >
-            Create Sale & Generate Invoice
-          </button>
+            <button
+              type="button"
+              onClick={handleCancel}
+              style={{
+                flex: 1,
+                width: "auto",
+                padding: "14px 20px",
+                border: "1px solid #d1d5db",
+                borderRadius: "8px",
+                background: "#ffffff",
+                color: "#374151",
+                fontWeight: "600",
+                fontSize: "14px",
+                cursor: "pointer",
+              }}
+            >
+              Cancel
+            </button>
+
+            <button
+              type="button"
+              className="create-sale-button"
+              onClick={handleCreateSale}
+              style={{
+                flex: 1,
+                width: "auto",
+              }}
+            >
+              Create Sale & Generate Invoice
+            </button>
+          </div>
 
         </section>
 
