@@ -2,49 +2,16 @@ import { useMemo, useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import "./Sales.css";
 
-const initialSales = [
-  {
-    id: "SALE-0001",
-    customer: "Walk-in Customer",
-    phone: "9876543210",
-    date: "28 Sep 2026",
-    items: 3,
-    amount: 12500,
-    paymentMethod: "UPI",
-    paymentStatus: "Paid",
-    discount: 500,
-    tax: 2160,
-  },
-  {
-    id: "SALE-0002",
-    customer: "Rahul Kumar",
-    phone: "9123456780",
-    date: "27 Sep 2026",
-    items: 2,
-    amount: 8500,
-    paymentMethod: "Cash",
-    paymentStatus: "Paid",
-    discount: 0,
-    tax: 1296,
-  },
-  {
-    id: "SALE-0003",
-    customer: "Priya Sharma",
-    phone: "9988776655",
-    date: "26 Sep 2026",
-    items: 4,
-    amount: 15600,
-    paymentMethod: "Credit",
-    paymentStatus: "Pending",
-    discount: 600,
-    tax: 2376,
-  },
-];
-
 function Sales() {
   const navigate = useNavigate();
 
-  const [sales] = useState(initialSales);
+  /*
+    Backend integration:
+    Sales data is intentionally empty until the backend API is connected.
+    The backend response can later be stored in the sales state.
+  */
+  const [sales] = useState([]);
+
   const [search, setSearch] = useState("");
   const [status, setStatus] = useState("All Status");
   const [selectedSale, setSelectedSale] = useState(null);
@@ -58,9 +25,13 @@ function Sales() {
       const searchText = search.toLowerCase().trim();
 
       const matchesSearch =
-        sale.id.toLowerCase().includes(searchText) ||
-        sale.customer.toLowerCase().includes(searchText) ||
-        sale.phone.includes(searchText);
+        String(sale.id || "")
+          .toLowerCase()
+          .includes(searchText) ||
+        String(sale.customer || "")
+          .toLowerCase()
+          .includes(searchText) ||
+        String(sale.phone || "").includes(searchText);
 
       const matchesStatus =
         status === "All Status" ||
@@ -328,7 +299,6 @@ function Sales() {
 
         {/* =====================================================
             SALES TABLE
-            MOBILE = SEPARATE COLUMN
         ===================================================== */}
 
         <div className="table-wrapper">
@@ -370,8 +340,6 @@ function Sales() {
 
                   <tr key={sale.id}>
 
-                    {/* SALE ID */}
-
                     <td>
 
                       <button
@@ -387,8 +355,6 @@ function Sales() {
                     </td>
 
 
-                    {/* CUSTOMER ONLY */}
-
                     <td>
 
                       <div className="customer-cell">
@@ -401,8 +367,6 @@ function Sales() {
 
                     </td>
 
-
-                    {/* MOBILE - SEPARATE COLUMN */}
 
                     <td>
 
@@ -417,14 +381,10 @@ function Sales() {
                     </td>
 
 
-                    {/* DATE */}
-
                     <td>
                       {sale.date}
                     </td>
 
-
-                    {/* ITEMS */}
 
                     <td>
 
@@ -434,8 +394,6 @@ function Sales() {
 
                     </td>
 
-
-                    {/* AMOUNT */}
 
                     <td>
 
@@ -448,27 +406,23 @@ function Sales() {
                     </td>
 
 
-                    {/* PAYMENT */}
-
                     <td>
                       {sale.paymentMethod}
                     </td>
 
 
-                    {/* STATUS */}
-
                     <td>
 
                       <span
-                        className={`status-badge ${sale.paymentStatus.toLowerCase()}`}
+                        className={`status-badge ${String(
+                          sale.paymentStatus || ""
+                        ).toLowerCase()}`}
                       >
                         {sale.paymentStatus}
                       </span>
 
                     </td>
 
-
-                    {/* ACTION */}
 
                     <td>
 
@@ -536,8 +490,7 @@ function Sales() {
 
       {/* =====================================================
           SALE DETAILS MODAL
-          SALES = CLOSE ONLY
-      ===================================================== */}
+          ===================================================== */}
 
       {selectedSale && (
 
@@ -649,7 +602,9 @@ function Sales() {
                 </span>
 
                 <span
-                  className={`status-badge ${selectedSale.paymentStatus.toLowerCase()}`}
+                  className={`status-badge ${String(
+                    selectedSale.paymentStatus || ""
+                  ).toLowerCase()}`}
                 >
                   {selectedSale.paymentStatus}
                 </span>
@@ -768,7 +723,7 @@ function Sales() {
             </div>
 
 
-            {/* SALES FOOTER - CLOSE ONLY */}
+            {/* SALES FOOTER */}
 
             <div className="sale-modal-footer">
 

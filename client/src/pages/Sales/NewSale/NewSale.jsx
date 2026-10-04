@@ -2,53 +2,12 @@ import { useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import "./NewSale.css";
 
-const products = [
-  {
-    id: 1,
-    name: "Wireless Keyboard",
-    price: 1500,
-    stock: 25,
-  },
-  {
-    id: 2,
-    name: "USB Mouse",
-    price: 800,
-    stock: 40,
-  },
-  {
-    id: 3,
-    name: "Monitor",
-    price: 12500,
-    stock: 10,
-  },
-  {
-    id: 4,
-    name: "Laptop Stand",
-    price: 2200,
-    stock: 18,
-  },
-];
-
-const customers = [
-  {
-    id: 1,
-    name: "Walk-in Customer",
-    phone: "9876543210",
-  },
-  {
-    id: 2,
-    name: "Rahul Kumar",
-    phone: "9123456780",
-  },
-  {
-    id: 3,
-    name: "Priya Sharma",
-    phone: "9988776655",
-  },
-];
-
 function NewSale() {
   const navigate = useNavigate();
+
+  // Backend data will be populated here later
+  const products = [];
+  const customers = [];
 
   const [customerId, setCustomerId] = useState("");
   const [paymentMethod, setPaymentMethod] = useState("Cash");
@@ -1007,11 +966,7 @@ function NewSale() {
             </div>
           </div>
 
-          {/* ACTIONS
-              MOVED INSIDE SUMMARY PANEL
-              SO THEY ALWAYS APPEAR BELOW
-              SALE SUMMARY
-          */}
+          {/* ACTIONS */}
 
           <div className="sale-actions">
 

@@ -3,33 +3,12 @@ import { useNavigate } from 'react-router-dom';
 import '../Invoices.css';
 import './NewInvoice.css';
 
-const products = [
-  { id: 1, name: 'Wireless Keyboard', price: 1500 },
-  { id: 2, name: 'USB Mouse', price: 800 },
-  { id: 3, name: 'Monitor', price: 12500 },
-  { id: 4, name: 'Laptop Stand', price: 2200 },
-];
-
-const customers = [
-  {
-    id: 1,
-    name: 'Walk-in Customer',
-    phone: '9876543210',
-  },
-  {
-    id: 2,
-    name: 'Rahul Kumar',
-    phone: '9123456780',
-  },
-  {
-    id: 3,
-    name: 'Priya Sharma',
-    phone: '9988776655',
-  },
-];
-
 function NewInvoice() {
   const navigate = useNavigate();
+
+  // Backend data will be populated here later.
+  const products = [];
+  const customers = [];
 
   const [customerId, setCustomerId] = useState('');
   const [paymentMethod, setPaymentMethod] = useState('Cash');
@@ -207,104 +186,29 @@ function NewInvoice() {
       return;
     }
 
-    const storedLastInvoiceNumber = Number(
-      localStorage.getItem('lastInvoiceNumber') || 3
+    /*
+      Backend integration will be added here.
+
+      The backend should generate:
+      - Invoice ID / Invoice Number
+      - Invoice Date
+      - Customer details
+      - Product details
+      - Invoice items
+      - Subtotal
+      - Discount
+      - Tax
+      - Grand Total
+      - Payment Method
+      - Payment Status
+
+      Example API endpoint:
+      POST /api/invoices
+    */
+
+    alert(
+      'Invoice data is ready for backend integration.'
     );
-
-    const nextInvoiceNumber =
-      storedLastInvoiceNumber + 1;
-
-    const invoiceNumber = `INV-${String(
-      nextInvoiceNumber
-    ).padStart(4, '0')}`;
-
-    localStorage.setItem(
-      'lastInvoiceNumber',
-      String(nextInvoiceNumber)
-    );
-
-    const invoiceItems = items.map((item) => {
-      const product = products.find(
-        (productItem) =>
-          String(productItem.id) ===
-          String(item.productId)
-      );
-
-      return {
-        productId: item.productId,
-        productName: product
-          ? product.name
-          : 'Unknown Product',
-        quantity: Number(item.quantity),
-        price: Number(item.price),
-        total:
-          Number(item.quantity) *
-          Number(item.price),
-      };
-    });
-
-    const newInvoice = {
-      id: invoiceNumber,
-
-      customer: selectedCustomer.name,
-
-      phone: selectedCustomer.phone,
-
-      date: new Date().toLocaleDateString(
-        'en-GB',
-        {
-          day: '2-digit',
-          month: 'short',
-          year: 'numeric',
-        }
-      ),
-
-      items: invoiceItems,
-
-      subtotal: Number(
-        subtotal.toFixed(2)
-      ),
-
-      discountType,
-
-      discountValue: Number(
-        discountValue || 0
-      ),
-
-      discountAmount: Number(
-        discountAmount.toFixed(2)
-      ),
-
-      taxRate: Number(
-        taxRate || 0
-      ),
-
-      taxAmount: Number(
-        taxAmount.toFixed(2)
-      ),
-
-      grandTotal: Number(
-        grandTotal.toFixed(2)
-      ),
-
-      paymentMethod,
-
-      paymentStatus,
-    };
-
-    const existingInvoices = JSON.parse(
-      localStorage.getItem('invoices') || '[]'
-    );
-
-    localStorage.setItem(
-      'invoices',
-      JSON.stringify([
-        ...existingInvoices,
-        newInvoice,
-      ])
-    );
-
-    navigate('/invoices');
   };
 
   return (
