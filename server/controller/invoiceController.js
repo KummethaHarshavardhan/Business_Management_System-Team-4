@@ -5,9 +5,8 @@ import { generateInvoiceNumber } from '../utils/generateInvoiceNumber.js'
 import { round2 } from '../utils/calculateBill.js'
 import { getProduct } from '../services/stockService.js'
 import { getBusinessDetails } from '../services/businessService.js'
+import { getCustomer } from '../services/customerService.js'
 
-// POST /api/invoices  body: { saleId }
-// Creates an invoice (snapshot) from an existing sale.
 export const createInvoice = async (req, res) => {
   try {
     const { saleId } = req.body;
@@ -21,28 +20,16 @@ export const createInvoice = async (req, res) => {
       return res.status(404).json({ message: 'Sale not found' });
     }
 
-    // One invoice per sale
     const existing = await Invoice.findOne({ sale: saleId });
     if (existing) {
       return res.status(409).json({ message: 'Invoice already exists for this sale', invoice: existing });
     }
 
-    // Team 1 data has arrived (GET /api/business). Forward the cashier's own
-    // token so Team 1's authenticate middleware accepts the request.
     const businessDetails = await getBusinessDetails(req.headers.authorization);
-
-    // -- i want api/data/field from team3 - customer by id (sale.customer): name, phone, address
-    const customerDetails = {
-      name: 'PENDING TEAM 3 DATA',
-      phone: '',
-      address: '',
-    }; // temporary placeholder
-
-    // Invoice items need productName from Team 2 (through stockService)
+    const customerDetails = await getCustomer(sale.customer, req.headers.authorization);
     const items = [];
     for (const item of sale.items) {
-      // -- i want api/data/field from team2 - product name by id (used as invoice productName)
-      const product = await getProduct(item.product);
+      const product = await getProduct(item.product, req.headers.authorization);
       items.push({
         productName: product.name,
         quantity: item.quantity,
@@ -78,8 +65,6 @@ export const createInvoice = async (req, res) => {
   }
 };
 
-// GET /api/invoices?from=&to=&paymentStatus=
-// Lists invoices, newest first. "to" date includes the whole day.
 export const getInvoices = async (req, res) => {
   try {
     const { from, to, paymentStatus } = req.query;
@@ -114,8 +99,6 @@ export const getInvoices = async (req, res) => {
   }
 };
 
-// GET /api/invoices/:id
-// Gets one invoice by id.
 export const getInvoiceById = async (req, res) => {
   try {
     const { id } = req.params;

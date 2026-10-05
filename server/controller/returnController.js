@@ -3,8 +3,7 @@ import Sale from '../model/sale.js'
 import Return from '../model/return.js'
 import { increaseStock } from '../services/stockService.js'
 
-// POST /api/returns  body: { saleId, productId, quantityReturned, reason }
-// Creates a return and puts the quantity back into stock.
+
 export const createReturn = async (req, res) => {
   try {
     const { saleId, productId, quantityReturned, reason } = req.body;
@@ -21,13 +20,12 @@ export const createReturn = async (req, res) => {
       return res.status(404).json({ message: 'Sale not found' });
     }
 
-    // The product must be part of this sale
     const soldItem = sale.items.find((item) => String(item.product) === String(productId));
     if (!soldItem) {
       return res.status(400).json({ message: 'This product is not part of the given sale' });
     }
 
-    // Quantity already returned earlier (only Completed returns count)
+
     const previous = await Return.find({ sale: saleId, product: productId, status: 'Completed' });
     const alreadyReturned = previous.reduce((sum, r) => sum + r.quantityReturned, 0);
     const remaining = soldItem.quantity - alreadyReturned;
@@ -37,11 +35,7 @@ export const createReturn = async (req, res) => {
         message: `Cannot return ${quantityReturned}. Only ${remaining} unit(s) can be returned.`,
       });
     }
-
-    // -- i want api/data/field from team2 - api to INCREASE stock (used inside increaseStock in services/stockService.js)
-    // Stock is increased BEFORE saving the return, so a failed stock update never leaves a saved return.
-    await increaseStock(productId, quantityReturned);
-
+    await increaseStock(productId, quantityReturned, req.headers.authorization);
     const newReturn = await Return.create({
       sale: saleId,
       product: productId,
@@ -55,8 +49,7 @@ export const createReturn = async (req, res) => {
   }
 };
 
-// GET /api/returns?saleId=&productId=
-// Lists returns, newest first.
+
 export const getReturns = async (req, res) => {
   try {
     const { saleId, productId } = req.query;

@@ -1,6 +1,6 @@
 
 
-const BUSINESS_SERVICE_URL = process.env.TEAM1_BUSINESS_URL || 'http://localhost:5000/api/business';
+const BUSINESS_SERVICE_URL = 'http://localhost:5000/api/business';
 
 export const getBusinessDetails = async (token) => {
   const res = await fetch(BUSINESS_SERVICE_URL, {

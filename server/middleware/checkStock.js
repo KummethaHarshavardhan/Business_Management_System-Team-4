@@ -19,7 +19,7 @@ const checkStock = async (req, res, next) => {
         return res.status(400).json({ message: 'Each item needs a whole number quantity, minimum 1' });
       }
 
-      const product = await getProduct(item.product);
+      const product = await getProduct(item.product, req.headers.authorization);
       if (!product) {
         return res.status(404).json({ message: `Product ${item.product} not found` });
       }

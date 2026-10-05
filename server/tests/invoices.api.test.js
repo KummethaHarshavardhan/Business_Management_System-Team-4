@@ -2,7 +2,6 @@ import { jest } from '@jest/globals'
 import express from 'express'
 import request from 'supertest'
 
-// ---- Mocks: no real database, no real Team 1/2/3 api is used ----
 const mockSale = { findById: jest.fn() };
 const mockInvoice = { findOne: jest.fn(), create: jest.fn(), find: jest.fn(), findById: jest.fn() };
 const mockGenerateInvoiceNumber = jest.fn();
@@ -23,10 +22,8 @@ jest.unstable_mockModule('../services/businessService.js', () => ({
   getBusinessDetails: mockGetBusinessDetails,
 }));
 
-// routes must be imported AFTER the mocks are registered
 const { default: invoiceRoutes } = await import('../routes/invoiceRoutes.js');
 
-// small app with only the invoice routes (server.js starts a real server, so tests do not import it)
 const app = express();
 app.use(express.json());
 app.use('/api/invoices', invoiceRoutes);
@@ -36,7 +33,6 @@ const PRODUCT_ID = '665f1a2b3c4d5e6f7a8b9c0e';
 const CUSTOMER_ID = '665f1a2b3c4d5e6f7a8b9c0f';
 const INVOICE_ID = '665f1a2b3c4d5e6f7a8b9c10';
 
-// subtotal 200, 10% discount = 20, tax 18% on 180 = 32.4, grand total 212.4
 const makeSale = (overrides = {}) => ({
   _id: SALE_ID,
   customer: CUSTOMER_ID,
@@ -107,14 +103,14 @@ describe('POST /api/invoices', () => {
     expect(mockGetBusinessDetails).toHaveBeenCalledWith('Bearer sometoken');
   });
 
-  // Team 3 (customer) has not arrived yet, so this is still a placeholder.
+
   test('placeholder customer name is NOT empty (schema needs customerDetails.name)', async () => {
     mockSale.findById.mockResolvedValue(makeSale());
     mockInvoice.findOne.mockResolvedValue(null);
 
     const res = await request(app).post('/api/invoices').send({ saleId: SALE_ID });
 
-    // When Team 3's api is added, update this expectation to the real customer name
+
     expect(res.body.customerDetails.name).not.toBe('');
   });
 

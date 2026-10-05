@@ -1,7 +1,6 @@
-// Rounds a number to 2 decimals
+
 export const round2 = (n) => Math.round((n + Number.EPSILON) * 100) / 100;
 
-// Calculates discount amount from subtotal. type: 'percentage' | 'fixed'
 export const calculateDiscount = (subtotal, discount) => {
   const { type = 'fixed', value = 0 } = discount || {};
 
@@ -18,8 +17,7 @@ export const calculateDiscount = (subtotal, discount) => {
   throw new Error(`Unknown discount type: ${type}`);
 };
 
-// Pure bill calculation (no DB, no API).
-// Flow: item total -> subtotal -> discount -> tax (after discount) -> grand total
+
 export const calculateBill = ({ items, discount = { type: 'fixed', value: 0 }, taxRate = 0 }) => {
   if (!Array.isArray(items) || items.length === 0) {
     throw new Error('At least one item is required to calculate a bill');
