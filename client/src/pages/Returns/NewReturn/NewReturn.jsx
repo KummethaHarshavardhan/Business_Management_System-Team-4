@@ -1,12 +1,13 @@
-import { useMemo, useState } from "react";
+import { useEffect,useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import "./NewReturn.css";
 
+import { getInvoices } from "../../../services/invoice";
+import { getProducts } from "../../../services/product";
+import { createReturn } from "../../../services/return";
+
 function NewReturn() {
   const navigate = useNavigate();
-
-  // Backend invoice data will be loaded here later.
-  const invoiceData = [];
 
   const reasons = [
     "Damaged Product",
@@ -23,6 +24,9 @@ function NewReturn() {
     "Bank Transfer",
   ];
 
+  const [invoiceData, setInvoiceData] = useState([]);
+  const [productsData, setProductsData] = useState([]);
+
   const [invoiceId, setInvoiceId] = useState("");
   const [returnDate, setReturnDate] = useState("");
   const [returnReason, setReturnReason] = useState("");
@@ -33,13 +37,98 @@ function NewReturn() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [successMessage, setSuccessMessage] = useState("");
 
+    useEffect(() => {
+    const fetchData = async () => {
+      try {
+        const [invoiceResponse, productResponse] =
+          await Promise.all([
+            getInvoices(),
+            getProducts(),
+          ]);
+
+        const invoiceList = Array.isArray(invoiceResponse)
+          ? invoiceResponse
+          : invoiceResponse.data || [];
+
+        const productList = Array.isArray(productResponse)
+          ? productResponse
+          : productResponse.data || [];
+
+        setInvoiceData(invoiceList);
+        setProductsData(productList);
+      } catch (error) {
+        console.error("New Return API Error:", error);
+      }
+    };
+
+    fetchData();
+  }, []);
+
   const selectedInvoice = useMemo(() => {
     return invoiceData.find(
-      (invoice) => invoice.invoiceId === invoiceId
+      (invoice) => (invoice.invoiceId || invoice._id || invoice.id) === invoiceId
     );
-  }, [invoiceId]);
+  }, [invoiceData,invoiceId]);
 
-  const products = selectedInvoice?.products || [];
+    const products = useMemo(() => {
+    if (!selectedInvoice) {
+      return [];
+    }
+
+    const invoiceItems =
+      selectedInvoice.items ||
+      selectedInvoice.products ||
+      [];
+
+    return invoiceItems.map((item) => {
+      const productId =
+        item.product?._id ||
+        item.product?.id ||
+        item.product ||
+        item.productId ||
+        item._id ||
+        item.id;
+
+      const productDetails = productsData.find(
+        (product) =>
+          (product._id || product.id) === productId
+      );
+
+      return {
+        id: productId,
+        name:
+          item.productName ||
+          item.name ||
+          item.product?.productName ||
+          productDetails?.productName ||
+          productDetails?.name ||
+          "Product",
+        productCode:
+          item.productCode ||
+          item.sku ||
+          item.product?.sku ||
+          productDetails?.sku ||
+          productDetails?.productCode ||
+          "—",
+        soldQty:
+          Number(
+            item.quantity ||
+            item.soldQty ||
+            item.qty ||
+            0
+          ),
+        unitPrice:
+          Number(
+            item.price ||
+            item.unitPrice ||
+            item.sellingPrice ||
+            productDetails?.sellingPrice ||
+            productDetails?.price ||
+            0
+          ),
+      };
+    });
+  }, [selectedInvoice, productsData]);
 
   const totalItems = Object.values(returnQuantities).reduce(
     (total, quantity) => {
@@ -178,7 +267,7 @@ function NewReturn() {
     return Object.keys(newErrors).length === 0;
   };
 
-  const handleSubmit = (event) => {
+  const handleSubmit = async (event) => {
     event.preventDefault();
 
     if (!validateForm()) {
@@ -190,34 +279,73 @@ function NewReturn() {
     }
 
     setIsSubmitting(true);
+    setSuccessMessage("");
 
-    /*
-      Backend integration will be added here.
+    const selectedInvoiceId =
+      selectedInvoice.invoiceId ||
+      selectedInvoice._id ||
+      selectedInvoice.id;
 
-      The backend should generate/store:
-      - Return ID
-      - Invoice ID
-      - Sale ID
-      - Customer details
-      - Returned products
-      - Return quantities
-      - Return amount
-      - Return reason
-      - Refund method
-      - Return date
-      - Return status
-      - Notes
+    const selectedSaleId =
+      selectedInvoice.saleId ||
+      selectedInvoice.sale ||
+      selectedInvoice.sale?._id ||
+      "";
 
-      Example API endpoint:
+    const returnItems = products
+      .filter(
+        (product) =>
+          Number(
+            returnQuantities[product.id] || 0
+          ) > 0
+      )
+      .map((product) => ({
+        product: product.id,
+        quantity: Number(
+          returnQuantities[product.id]
+        ),
+        price: Number(product.unitPrice || 0),
+        total:
+          Number(
+            returnQuantities[product.id]
+          ) *
+          Number(product.unitPrice || 0),
+      }));
 
-      POST /api/returns
-    */
+    const returnData = {
+      invoiceId: selectedInvoiceId,
+      saleId: selectedSaleId,
+      customer:
+        selectedInvoice.customerId ||
+        selectedInvoice.customer?._id ||
+        selectedInvoice.customer?.id ||
+        selectedInvoice.customer,
+      items: returnItems,
+      amount: totalRefundAmount,
+      reason: returnReason,
+      refundMethod,
+      returnDate:
+        returnDate ||
+        new Date().toISOString().split("T")[0],
+      notes,
+    };
 
-    setSuccessMessage(
-      "Return data is ready for backend integration."
-    );
+    try {
+      await createReturn(returnData);
 
-    setIsSubmitting(false);
+      setSuccessMessage(
+        "Return created successfully."
+      );
+
+      setTimeout(() => {
+        navigate("/returns");
+      }, 1000);
+    } catch (error) {
+      setSuccessMessage("");
+      alert(error.message);
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   const handleCancel = () => {
@@ -347,17 +475,26 @@ function NewReturn() {
                     Select Invoice
                   </option>
 
-                  {invoiceData.map((invoice) => (
+                  {invoiceData.map((invoice) => {
 
-                    <option
-                      key={invoice.invoiceId}
-                      value={invoice.invoiceId}
-                    >
-                      {invoice.invoiceId} —{" "}
-                      {invoice.customer}
-                    </option>
+                    const currentInvoiceId =
+                      invoice.invoiceId ||
+                      invoice._id ||
+                      invoice.id;
 
-                  ))}
+                    return (
+                      <option
+                        key={currentInvoiceId}
+                        value={currentInvoiceId}
+                      >
+                        {currentInvoiceId} —{" "}
+                        {invoice.customerName ||
+                          invoice.customer ||
+                          invoice.customer?.name ||
+                          "Customer"}
+                      </option>
+                    );
+                  })}
 
                 </select>
 
@@ -415,7 +552,7 @@ function NewReturn() {
                   </label>
 
                   <input
-                    type="text"
+                    type="date"
                     value={returnDate}
                     onChange={(event) =>
                       setReturnDate(

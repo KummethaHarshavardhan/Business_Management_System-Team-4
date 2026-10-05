@@ -1,10 +1,13 @@
-import { useMemo, useState } from "react";
+import { useMemo, useState , useEffect } from "react";
 import "./Billing.css";
 
+import { getCustomers } from "../../services/customer";
+import { getProducts } from "../../services/product";
+import { createSale } from "../../services/sales";
+
 function Billing() {
-  // Backend API data will be populated here later
-  const customers = [];
-  const products = [];
+  const [customers, setCustomers] = useState([]);
+  const [products, setProducts] = useState([]);
 
   const [customerId, setCustomerId] = useState("");
   const [productId, setProductId] = useState("");
@@ -14,11 +17,51 @@ function Billing() {
 
   const [discountType, setDiscountType] = useState("percentage");
   const [discountValue, setDiscountValue] = useState(0);
-
   const [tax, setTax] = useState(0);
-
   const [paymentMethod, setPaymentMethod] = useState("Cash");
   const [paymentStatus, setPaymentStatus] = useState("Paid");
+    const [isSubmitting, setIsSubmitting] = useState(false);
+
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        const [customerResponse, productResponse] =
+          await Promise.all([
+            getCustomers(),
+            getProducts(),
+          ]);
+        const customerData = Array.isArray(customerResponse)? customerResponse: customerResponse.data || [];
+        const productData = Array.isArray(productResponse)? productResponse: productResponse.data || [];
+        setCustomers(
+          customerData.map((customer) => ({
+            id: customer._id || customer.id,
+            name: customer.name,
+            phone: customer.phone,
+            email: customer.email,
+            address: customer.address,
+            gstNumber: customer.gstNumber,
+          }))
+        );
+        setProducts(
+          productData.map((product) => ({
+            id: product._id || product.id,
+            name: product.productName || product.name,
+            price:
+              product.sellingPrice ??
+              product.price ??
+              0,
+            stock:
+              product.stockQuantity ??
+              product.stock ??
+              0,
+          }))
+        );
+      } catch (error) {
+        alert(error.message);
+      }
+    };
+    fetchData();
+  }, []);
 
   const selectedProduct = products.find(
     (product) => product.id === productId
@@ -197,7 +240,7 @@ function Billing() {
      CREATE SALE
   ========================= */
 
-  const handleCreateSale = () => {
+  const handleCreateSale = async() => {
     if (!selectedCustomer) {
       alert("Please select a customer.");
       return;
@@ -215,31 +258,35 @@ function Billing() {
         product: item.productId,
         quantity: item.quantity,
         price: item.price,
-        total: item.total,
       })),
-
-      subtotal,
 
       discount: {
         type: discountType,
         value: Number(discountValue) || 0,
       },
 
-      tax: taxAmount,
-
-      grandTotal,
+      taxRate: Number(tax) || 0,
 
       paymentMethod,
 
       paymentStatus,
     };
 
-    console.log("Sale Data:", saleData);
+    setIsSubmitting(true);
 
-    alert("Sale created successfully!");
+    try {
+      const sale = await createSale(saleData);
 
-    // Backend integration:
-    // POST /api/sales
+      alert(
+        `Sale created successfully! Sale ID: ${sale._id}`
+      );
+    } catch (error) {
+      alert(
+        `Could not create sale: ${error.message}`
+      );
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   /* =========================
@@ -811,6 +858,7 @@ function Billing() {
               type="button"
               className="create-sale-button"
               onClick={handleCreateSale}
+              disabled={isSubmitting}
               style={{
                 flex: 1,
                 width: "auto",

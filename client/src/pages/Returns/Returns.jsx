@@ -1,20 +1,33 @@
 import { useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import "./Return.css";
+import { getReturns } from "../../services/return";
 
 function Return() {
   const navigate = useNavigate();
-
-  // Backend data will be loaded here later.
   const [returns, setReturns] = useState([]);
 
   const [search, setSearch] = useState("");
   const [status, setStatus] = useState("All Status");
   const [selectedReturn, setSelectedReturn] = useState(null);
 
-  // =================================================
-  // ESC KEY + BODY SCROLL CONTROL
-  // =================================================
+  useEffect(() => {
+    const fetchReturns = async () => {
+      try {
+        const data = await getReturns();
+
+        setReturns(
+          Array.isArray(data)
+            ? data
+            : data.data || []
+        );
+      } catch (error) {
+        console.error("Returns API Error:", error);
+      }
+    };
+
+    fetchReturns();
+  }, []);
 
   useEffect(() => {
     if (!selectedReturn) {
@@ -22,7 +35,6 @@ function Return() {
       return;
     }
 
-    // Prevent background page scrolling while modal is open
     document.body.style.overflow = "hidden";
 
     const handleEscapeKey = (event) => {
@@ -31,7 +43,10 @@ function Return() {
       }
     };
 
-    document.addEventListener("keydown", handleEscapeKey);
+    document.addEventListener(
+      "keydown",
+      handleEscapeKey
+    );
 
     return () => {
       document.removeEventListener(
@@ -39,18 +54,15 @@ function Return() {
         handleEscapeKey
       );
 
-      // Restore normal page scrolling
       document.body.style.overflow = "";
     };
   }, [selectedReturn]);
 
-  // =================================================
-  // FILTER RETURNS
-  // =================================================
-
   const filteredReturns = useMemo(() => {
     return returns.filter((item) => {
-      const searchText = search.toLowerCase().trim();
+      const searchText = search
+        .toLowerCase()
+        .trim();
 
       const matchesSearch =
         String(item.id || "")
@@ -74,10 +86,6 @@ function Return() {
       return matchesSearch && matchesStatus;
     });
   }, [returns, search, status]);
-
-  // =================================================
-  // STATISTICS
-  // =================================================
 
   const totalReturns = returns.length;
 
@@ -104,53 +112,36 @@ function Return() {
       0
     );
 
-  // =================================================
-  // CURRENCY
-  // =================================================
-
   const formatCurrency = (amount) => {
-    return `₹${Number(amount || 0).toLocaleString("en-IN", {
-      minimumFractionDigits: 2,
-      maximumFractionDigits: 2,
-    })}`;
+    return `₹${Number(amount || 0).toLocaleString(
+      "en-IN",
+      {
+        minimumFractionDigits: 2,
+        maximumFractionDigits: 2,
+      }
+    )}`;
   };
 
-  // =================================================
-  // NEW RETURN
-  // =================================================
 
   const handleNewReturn = () => {
     navigate("/returns/new");
   };
 
-  // =================================================
-  // VIEW RETURN
-  // =================================================
 
   const handleViewReturn = (returnItem) => {
     setSelectedReturn(returnItem);
   };
 
-  // =================================================
-  // CLOSE MODAL
-  // =================================================
 
   const closeReturnDetails = () => {
     setSelectedReturn(null);
   };
 
-  // =================================================
-  // RESET FILTERS
-  // =================================================
 
   const resetFilters = () => {
     setSearch("");
     setStatus("All Status");
   };
-
-  // =================================================
-  // APPROVE RETURN
-  // =================================================
 
   const handleApproveReturn = (returnId) => {
     setReturns((currentReturns) =>
@@ -172,18 +163,7 @@ function Return() {
           }
         : null
     );
-
-    /*
-      Backend integration will be added here.
-
-      Example:
-      PUT /api/returns/:returnId/approve
-    */
   };
-
-  // =================================================
-  // REJECT RETURN
-  // =================================================
 
   const handleRejectReturn = (returnId) => {
     setReturns((currentReturns) =>
@@ -205,18 +185,7 @@ function Return() {
           }
         : null
     );
-
-    /*
-      Backend integration will be added here.
-
-      Example:
-      PUT /api/returns/:returnId/reject
-    */
   };
-
-  // =================================================
-  // PROCESS REFUND
-  // =================================================
 
   const handleProcessRefund = (returnId) => {
     setReturns((currentReturns) =>
@@ -238,18 +207,7 @@ function Return() {
           }
         : null
     );
-
-    /*
-      Backend integration will be added here.
-
-      Example:
-      PUT /api/returns/:returnId/refund
-    */
   };
-
-  // =================================================
-  // VIEW INVOICE
-  // =================================================
 
   const handleViewInvoice = () => {
     if (!selectedReturn) return;
@@ -261,21 +219,13 @@ function Return() {
 
   return (
     <div className="returns-page">
-
-      {/* =================================================
-          HEADER
-      ================================================= */}
-
       <div className="returns-header">
-
         <div>
           <h1>Returns</h1>
-
           <p>
             Manage product returns, approvals and refunds.
           </p>
         </div>
-
         <button
           type="button"
           className="primary-return-btn"
@@ -283,17 +233,9 @@ function Return() {
         >
           + New Return
         </button>
-
       </div>
-
-      {/* =================================================
-          STATISTICS
-      ================================================= */}
-
       <div className="returns-stats">
-
         <div className="return-stat-card">
-
           <div className="return-stat-icon purple">
             ↩
           </div>
@@ -357,47 +299,28 @@ function Return() {
         </div>
 
       </div>
-
-      {/* =================================================
-          ADDITIONAL SUMMARY
-      ================================================= */}
-
       <div className="return-summary-strip">
-
         <div>
           <span>Refunded Returns</span>
-
           <strong>
             {refundedReturns}
           </strong>
         </div>
-
         <div>
           <span>Rejected Returns</span>
-
           <strong>
             {rejectedReturns}
           </strong>
         </div>
-
         <div>
           <span>Total Refund Value</span>
-
           <strong>
             {formatCurrency(totalRefundAmount)}
           </strong>
         </div>
 
       </div>
-
-      {/* =================================================
-          RETURNS TABLE
-      ================================================= */}
-
       <div className="returns-table-card">
-
-        {/* TOOLBAR */}
-
         <div className="returns-toolbar">
 
           <div className="return-search-box">
@@ -685,13 +608,7 @@ function Return() {
 
             </div>
 
-            {/* =================================================
-                BASIC DETAILS
-            ================================================= */}
-
             <div className="return-detail-grid">
-
-              {/* Customer */}
 
               <div className="return-detail-box">
 
@@ -709,8 +626,6 @@ function Return() {
 
               </div>
 
-              {/* Return Date */}
-
               <div className="return-detail-box">
 
                 <span>
@@ -722,8 +637,6 @@ function Return() {
                 </strong>
 
               </div>
-
-              {/* Invoice */}
 
               <div className="return-detail-box">
 
@@ -737,8 +650,6 @@ function Return() {
 
               </div>
 
-              {/* Sale */}
-
               <div className="return-detail-box">
 
                 <span>
@@ -751,8 +662,6 @@ function Return() {
 
               </div>
 
-              {/* Reason */}
-
               <div className="return-detail-box">
 
                 <span>
@@ -764,8 +673,6 @@ function Return() {
                 </strong>
 
               </div>
-
-              {/* Status */}
 
               <div className="return-detail-box">
 
@@ -786,10 +693,6 @@ function Return() {
               </div>
 
             </div>
-
-            {/* =================================================
-                RETURN SUMMARY
-            ================================================= */}
 
             <div className="return-summary-section">
 
@@ -832,16 +735,14 @@ function Return() {
                 </div>
 
                 <strong>
-                  {formatCurrency(selectedReturn.amount)}
+                  {formatCurrency(
+                    selectedReturn.amount
+                  )}
                 </strong>
 
               </div>
 
             </div>
-
-            {/* =================================================
-                REFUND DETAILS
-            ================================================= */}
 
             <div className="refund-details-section">
 
@@ -864,7 +765,9 @@ function Return() {
                 </span>
 
                 <strong className="refund-amount">
-                  {formatCurrency(selectedReturn.amount)}
+                  {formatCurrency(
+                    selectedReturn.amount
+                  )}
                 </strong>
 
               </div>
@@ -883,10 +786,6 @@ function Return() {
 
             </div>
 
-            {/* =================================================
-                NOTES
-            ================================================= */}
-
             <div className="return-notes">
 
               <span>
@@ -900,13 +799,7 @@ function Return() {
 
             </div>
 
-            {/* =================================================
-                MODAL ACTIONS
-            ================================================= */}
-
             <div className="return-modal-footer">
-
-              {/* CLOSE */}
 
               <button
                 type="button"
@@ -915,8 +808,6 @@ function Return() {
               >
                 Close
               </button>
-
-              {/* PENDING ACTIONS */}
 
               {selectedReturn.status === "Pending" && (
 
@@ -950,8 +841,6 @@ function Return() {
 
               )}
 
-              {/* APPROVED ACTION */}
-
               {selectedReturn.status === "Approved" && (
 
                 <button
@@ -967,8 +856,6 @@ function Return() {
                 </button>
 
               )}
-
-              {/* REFUNDED ACTION */}
 
               {selectedReturn.status === "Refunded" && (
 

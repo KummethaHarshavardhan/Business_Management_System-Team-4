@@ -1,24 +1,31 @@
 import { useMemo, useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import "./Sales.css";
+import { getSales } from "../../services/sales";
 
 function Sales() {
   const navigate = useNavigate();
 
-  /*
-    Backend integration:
-    Sales data is intentionally empty until the backend API is connected.
-    The backend response can later be stored in the sales state.
-  */
-  const [sales] = useState([]);
+  const [sales,setSales] = useState([]);
 
   const [search, setSearch] = useState("");
   const [status, setStatus] = useState("All Status");
   const [selectedSale, setSelectedSale] = useState(null);
 
-  /* =====================================================
-     FILTER
-  ===================================================== */
+  useEffect(() => {
+    const fetchSales = async () => {
+      try {
+        const data = await getSales();
+        console.log("Sales API:", data);
+        const salesData = Array.isArray(data) ? data : data.data || [];
+        setSales(salesData);
+      } catch (error) {
+        console.error("Sales API Error:", error);
+      }
+    };
+
+    fetchSales();
+    }, []);
 
   const filteredSales = useMemo(() => {
     return sales.filter((sale) => {

@@ -1,13 +1,57 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import "./NewSale.css";
-
+import { getCustomers } from "../../../services/customer";
+import { getProducts } from "../../../services/product";
+import { createSale } from "../../../services/sales";
 function NewSale() {
   const navigate = useNavigate();
+  
+  const [products, setProducts] = useState([]);
+  const [customers, setCustomers] = useState([]);
+    useEffect(() => {
+    const fetchData = async () => {
+      try {
+        const customerResponse = await getCustomers();
+        const productResponse = await getProducts();
 
-  // Backend data will be populated here later
-  const products = [];
-  const customers = [];
+        const customerData = Array.isArray(customerResponse)
+          ? customerResponse
+          : customerResponse.data || [];
+
+        const productData = Array.isArray(productResponse)
+          ? productResponse
+          : productResponse.data || [];
+
+        const formattedCustomers = customerData.map((customer) => ({
+          id: customer._id || customer.id,
+          name: customer.name,
+          phone: customer.phone,
+          email: customer.email,
+          address: customer.address,
+          gstNumber: customer.gstNumber,
+        }));
+
+        const formattedProducts = productData.map((product) => ({
+          id: product._id || product.id,
+          name: product.productName || product.name,
+          price: Number(
+            product.sellingPrice ?? product.price ?? 0
+          ),
+          stock: Number(
+            product.stockQuantity ?? product.stock ?? 0
+          ),
+        }));
+
+        setCustomers(formattedCustomers);
+        setProducts(formattedProducts);
+      } catch (error) {
+        console.error("Failed to fetch data:", error);
+      }
+    };
+
+    fetchData();
+  }, []);
 
   const [customerId, setCustomerId] = useState("");
   const [paymentMethod, setPaymentMethod] = useState("Cash");
@@ -251,7 +295,7 @@ function NewSale() {
     );
   };
 
-  const handleCreateSale = () => {
+  const handleCreateSale = async () => {
     if (!customerId) {
       alert("Please select a customer.");
       return;
@@ -298,13 +342,39 @@ function NewSale() {
       return;
     }
 
-    alert(
-      `Sale created successfully!\n\nGrand Total: ${formatCurrency(
-        grandTotal
-      )}`
-    );
+    const saleData = {
+      customer: customerId,
 
-    navigate("/sales");
+      items: items.map((item) => ({
+        product: item.productId,
+        quantity: item.quantity,
+        price: item.price,
+      })),
+
+      discount: {
+        type: discountType,
+        value: discountValue,
+      },
+
+      taxRate,
+      paymentMethod,
+      paymentStatus,
+    };
+
+    try {
+      await createSale(saleData);
+
+      alert(
+        `Sale created successfully!\n\nGrand Total: ${formatCurrency(
+          grandTotal
+        )}`
+      );
+
+      navigate("/sales");
+    } catch (error) {
+      console.error("Create Sale Error:", error);
+      alert(error.message);
+    }
   };
 
   return (

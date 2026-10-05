@@ -1,21 +1,33 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import "./Invoices.css";
+import { getInvoices } from "../../services/invoice";
 
 function Invoices() {
   const navigate = useNavigate();
-
-  // Backend API data will be populated here later
   const [invoices, setInvoices] = useState([]);
 
   const [search, setSearch] = useState("");
   const [status, setStatus] = useState("All");
   const [selectedInvoice, setSelectedInvoice] =
     useState(null);
+  useEffect(() => {
+    const fetchInvoices = async () => {
+      try {
+        const data = await getInvoices();
 
-  /* =====================================================
-     FILTER
-  ===================================================== */
+        setInvoices(
+          Array.isArray(data)
+            ? data
+            : data.data || []
+        );
+      } catch (error) {
+        console.error("Invoices API Error:", error);
+      }
+    };
+
+    fetchInvoices();
+  }, []);
 
   const filteredInvoices = useMemo(() => {
     return invoices.filter((invoice) => {

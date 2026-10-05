@@ -1,14 +1,17 @@
-import { useMemo, useState } from 'react';
+import { useEffect,useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import '../Invoices.css';
 import './NewInvoice.css';
 
+import { getCustomers } from '../../../services/customer';
+import { getProducts } from '../../../services/product';
+import { createInvoice } from '../../../services/invoice';
+
 function NewInvoice() {
   const navigate = useNavigate();
 
-  // Backend data will be populated here later.
-  const products = [];
-  const customers = [];
+  const [products, setProducts] = useState([]);
+  const [customers, setCustomers] = useState([]);
 
   const [customerId, setCustomerId] = useState('');
   const [paymentMethod, setPaymentMethod] = useState('Cash');
@@ -26,6 +29,55 @@ function NewInvoice() {
       price: 0,
     },
   ]);
+    useEffect(() => {
+      const fetchData = async () => {
+        try {
+          const customerResponse = await getCustomers();
+          const productResponse = await getProducts();
+
+          const customerData = Array.isArray(customerResponse)
+            ? customerResponse
+            : customerResponse.data || [];
+
+          const productData = Array.isArray(productResponse)
+            ? productResponse
+            : productResponse.data || [];
+
+          setCustomers(
+            customerData.map((customer) => ({
+              id: customer._id || customer.id,
+              name: customer.name,
+              phone: customer.phone,
+              email: customer.email,
+              address: customer.address,
+              gstNumber: customer.gstNumber,
+            }))
+          );
+
+          setProducts(
+            productData.map((product) => ({
+              id: product._id || product.id,
+              name: product.productName || product.name,
+              price:
+                product.sellingPrice ??
+                product.price ??
+                0,
+              stock:
+                product.stockQuantity ??
+                product.stock ??
+                0,
+            }))
+          );
+        } catch (error) {
+          console.error(
+            'Failed to fetch invoice data:',
+            error
+          );
+        }
+      };
+      fetchData();
+    }, []);
+
 
   const formatCurrency = (amount) => {
     return `₹${Number(amount || 0).toLocaleString('en-IN', {
@@ -162,7 +214,7 @@ function NewInvoice() {
     );
   };
 
-  const handleGenerateInvoice = () => {
+  const handleGenerateInvoice = async () => {
     if (!customerId) {
       alert('Please select a customer.');
       return;
@@ -186,31 +238,31 @@ function NewInvoice() {
       return;
     }
 
-    /*
-      Backend integration will be added here.
-
-      The backend should generate:
-      - Invoice ID / Invoice Number
-      - Invoice Date
-      - Customer details
-      - Product details
-      - Invoice items
-      - Subtotal
-      - Discount
-      - Tax
-      - Grand Total
-      - Payment Method
-      - Payment Status
-
-      Example API endpoint:
-      POST /api/invoices
-    */
-
-    alert(
-      'Invoice data is ready for backend integration.'
-    );
+    const invoiceData = {
+      customer: customerId,
+      items: items.map((item) => ({
+        product: item.productId,
+        quantity: Number(item.quantity),
+        price: Number(item.price),
+      })),
+      discount: {
+        type: discountType,
+        value: Number(discountValue || 0),
+      },
+      taxRate: Number(taxRate || 0),
+      paymentMethod,
+      paymentStatus,
+    };
+    try {
+      await createInvoice(invoiceData);
+      alert('Invoice created successfully.');
+      navigate('/invoices');
+    } catch (error) {
+      console.error('Invoice API Error:',error);
+      alert(error.message);
+    }
   };
-
+  
   return (
     <div className="new-invoice-page">
 
