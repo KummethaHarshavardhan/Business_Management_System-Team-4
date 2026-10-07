@@ -2,6 +2,8 @@ import mongoose from "mongoose";
 
 const CUSTOMER_URL = "http://localhost:5007/api/customers";
 
+const customersCollection = "customers";
+
 export const getCustomer = async (customerId, token) => {
   if (!customerId) {
     throw new Error("Customer ID is required");
@@ -9,7 +11,7 @@ export const getCustomer = async (customerId, token) => {
 
   // it is for temporary beacuse we taet for apis
   const customer = await mongoose.connection.db
-    .collection("testcustomers")
+    .collection(customersCollection)
     .findOne({ _id: new mongoose.Types.ObjectId(customerId) });
 
   if (!customer) {
@@ -26,10 +28,9 @@ export const getCustomer = async (customerId, token) => {
   };
 };
 
-// Read-only: returns every existing document in the testcustomers collection.
 export const getAllCustomers = async () => {
   return mongoose.connection.db
-    .collection("testcustomers")
+    .collection(customersCollection)
     .find({})
     .toArray();
 };

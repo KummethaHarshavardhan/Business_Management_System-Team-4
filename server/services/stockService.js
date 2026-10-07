@@ -1,12 +1,14 @@
 import mongoose from "mongoose";
 
+const productsCollection = "products";
+
 export const getProduct = async (productId, token) => {
   if (!productId) {
     throw new Error("Product ID is required");
   }
 
   const product = await mongoose.connection.db
-    .collection("testproducts")
+    .collection(productsCollection)
     .findOne({ _id: new mongoose.Types.ObjectId(productId) });
 
   if (!product) {
@@ -25,7 +27,7 @@ const adjustInventory = async (productId, quantity, operation, token) => {
   const adjustment =
     operation === "subtract" ? -quantity : quantity;
 
-  const collection = mongoose.connection.db.collection("testproducts");
+  const collection = mongoose.connection.db.collection(productsCollection);
   const _id = new mongoose.Types.ObjectId(productId);
 
   const filter =
@@ -56,10 +58,9 @@ export const decreaseStock = (productId, quantity, token) =>
 export const increaseStock = (productId, quantity, token) =>
   adjustInventory(productId, quantity, "add", token);
 
-
 export const getAllProducts = async () => {
   return mongoose.connection.db
-    .collection("testproducts")
+    .collection(productsCollection)
     .find({})
     .toArray();
 };
