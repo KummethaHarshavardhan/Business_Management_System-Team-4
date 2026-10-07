@@ -164,7 +164,8 @@ function Return() {
   const totalRefundAmount = returns
     .filter((item) => item.status === "Refunded")
     .reduce(
-      (sum, item) => sum + Number(item.amount || 0),
+      (sum, item) =>
+        sum + Number(item.amount || 0),
       0
     );
 
@@ -306,6 +307,7 @@ function Return() {
 
         </div>
 
+
         <div className="return-stat-card">
 
           <div className="return-stat-icon orange">
@@ -322,6 +324,7 @@ function Return() {
 
         </div>
 
+
         <div className="return-stat-card">
 
           <div className="return-stat-icon blue">
@@ -337,6 +340,7 @@ function Return() {
           </div>
 
         </div>
+
 
         <div className="return-stat-card">
 
@@ -357,22 +361,36 @@ function Return() {
       </div>
       <div className="return-summary-strip">
         <div>
-          <span>Refunded Returns</span>
+          <span>
+            Refunded Returns
+          </span>
+
           <strong>
             {refundedReturns}
           </strong>
+
         </div>
+
         <div>
-          <span>Rejected Returns</span>
+
+          <span>
+            Rejected Returns
+          </span>
+
           <strong>
             {rejectedReturns}
           </strong>
+
         </div>
         <div>
-          <span>Total Refund Value</span>
+
+          <span>
+            Total Refund Value
+          </span>
           <strong>
             {formatCurrency(totalRefundAmount)}
           </strong>
+
         </div>
 
       </div>
@@ -393,6 +411,7 @@ function Return() {
             />
 
           </div>
+
 
           <select
             value={status}
@@ -423,15 +442,8 @@ function Return() {
 
           </select>
 
-          <button
-            type="button"
-            className="return-filter-btn"
-            onClick={resetFilters}
-          >
-            Reset
-          </button>
-
         </div>
+
 
         {/* TABLE */}
 
@@ -442,18 +454,29 @@ function Return() {
             <thead>
 
               <tr>
+
                 <th>RETURN ID</th>
+
                 <th>INVOICE ID</th>
+
                 <th>CUSTOMER</th>
+
                 <th>MOBILE</th>
+
                 <th>DATE</th>
+
                 <th>ITEMS</th>
+
                 <th>AMOUNT</th>
+
                 <th>STATUS</th>
+
                 <th>ACTION</th>
+
               </tr>
 
             </thead>
+
 
             <tbody>
 
@@ -466,18 +489,24 @@ function Return() {
                     {/* RETURN ID */}
 
                     <td>
+
                       <span className="return-id-text">
                         {item.id}
                       </span>
+
                     </td>
+
 
                     {/* INVOICE ID */}
 
                     <td>
+
                       <span className="invoice-id-text">
                         {item.invoiceId}
                       </span>
+
                     </td>
+
 
                     {/* CUSTOMER */}
 
@@ -493,6 +522,7 @@ function Return() {
 
                     </td>
 
+
                     {/* MOBILE */}
 
                     <td>
@@ -503,11 +533,13 @@ function Return() {
 
                     </td>
 
+
                     {/* DATE */}
 
                     <td>
                       {item.date}
                     </td>
+
 
                     {/* ITEMS */}
 
@@ -519,6 +551,7 @@ function Return() {
 
                     </td>
 
+
                     {/* AMOUNT */}
 
                     <td>
@@ -528,6 +561,7 @@ function Return() {
                       </strong>
 
                     </td>
+
 
                     {/* STATUS */}
 
@@ -544,6 +578,7 @@ function Return() {
                       </span>
 
                     </td>
+
 
                     {/* ACTION */}
 
@@ -609,6 +644,7 @@ function Return() {
 
       </div>
 
+
       {/* =================================================
           RETURN DETAILS MODAL
       ================================================= */}
@@ -651,6 +687,7 @@ function Return() {
                 </p>
 
               </div>
+
 
               <button
                 type="button"
@@ -772,6 +809,7 @@ function Return() {
 
               </div>
 
+
               <div className="return-product-row">
 
                 <div>
@@ -814,6 +852,7 @@ function Return() {
 
               </div>
 
+
               <div className="refund-detail-row">
 
                 <span>
@@ -827,6 +866,7 @@ function Return() {
                 </strong>
 
               </div>
+
 
               <div className="refund-detail-row">
 
@@ -880,6 +920,7 @@ function Return() {
                   >
                     Reject Return
                   </button>
+
 
                   <button
                     type="button"

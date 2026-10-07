@@ -339,15 +339,6 @@ function Sales() {
 
           </select>
 
-
-          <button
-            type="button"
-            className="filter-btn"
-            onClick={resetFilters}
-          >
-            Reset
-          </button>
-
         </div>
 
 
@@ -544,7 +535,7 @@ function Sales() {
 
       {/* =====================================================
           SALE DETAILS MODAL
-          ===================================================== */}
+      ===================================================== */}
 
       {selectedSale && (
 

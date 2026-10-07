@@ -63,16 +63,20 @@ function NewSale() {
   const [discountValue, setDiscountValue] =
     useState(0);
 
-  const [taxRate, setTaxRate] = useState(18);
+  const [taxRate, setTaxRate] = useState(0);
 
   const [items, setItems] = useState([
     {
       id: Date.now(),
       productId: "",
-      quantity: 1,
-      price: 0,
+      quantity: "",
+      price: "",
     },
   ]);
+
+  /* =========================================================
+     FORMAT CURRENCY
+  ========================================================= */
 
   const formatCurrency = (amount) => {
     const safeAmount = Number(amount);
@@ -87,10 +91,18 @@ function NewSale() {
     })}`;
   };
 
+  /* =========================================================
+     SELECTED CUSTOMER
+  ========================================================= */
+
   const selectedCustomer = customers.find(
     (customer) =>
       String(customer.id) === String(customerId)
   );
+
+  /* =========================================================
+     SUBTOTAL
+  ========================================================= */
 
   const subtotal = useMemo(() => {
     return items.reduce((total, item) => {
@@ -101,6 +113,10 @@ function NewSale() {
       );
     }, 0);
   }, [items]);
+
+  /* =========================================================
+     DISCOUNT
+  ========================================================= */
 
   const discountAmount = useMemo(() => {
     const value = Number(discountValue || 0);
@@ -118,12 +134,24 @@ function NewSale() {
       subtotal,
       Math.max(0, value)
     );
-  }, [subtotal, discountType, discountValue]);
+  }, [
+    subtotal,
+    discountType,
+    discountValue,
+  ]);
+
+  /* =========================================================
+     TAXABLE AMOUNT
+  ========================================================= */
 
   const taxableAmount = Math.max(
     0,
     subtotal - discountAmount
   );
+
+  /* =========================================================
+     TAX
+  ========================================================= */
 
   const taxAmount = useMemo(() => {
     const safeTaxRate = Math.max(
@@ -136,8 +164,16 @@ function NewSale() {
     );
   }, [taxableAmount, taxRate]);
 
+  /* =========================================================
+     GRAND TOTAL
+  ========================================================= */
+
   const grandTotal =
     taxableAmount + taxAmount;
+
+  /* =========================================================
+     ADD ITEM
+  ========================================================= */
 
   const addItem = () => {
     setItems((currentItems) => [
@@ -145,11 +181,15 @@ function NewSale() {
       {
         id: Date.now() + Math.random(),
         productId: "",
-        quantity: 1,
-        price: 0,
+        quantity: "",
+        price: "",
       },
     ]);
   };
+
+  /* =========================================================
+     REMOVE ITEM
+  ========================================================= */
 
   const removeItem = (id) => {
     if (items.length === 1) {
@@ -213,11 +253,16 @@ function NewSale() {
                 1,
                 Number(item.quantity) || 1
               ),
+
             }
           : item
       )
     );
   };
+
+  /* =========================================================
+     UPDATE QUANTITY
+  ========================================================= */
 
   const updateQuantity = (id, quantity) => {
     const currentItem = items.find(
@@ -230,10 +275,25 @@ function NewSale() {
         String(currentItem?.productId)
     );
 
+    if (quantity === "") {
+      setItems((currentItems) =>
+        currentItems.map((item) =>
+          item.id === id
+            ? {
+                ...item,
+                quantity: "",
+              }
+            : item
+        )
+      );
+
+      return;
+    }
+
     let newQuantity = Number(quantity);
 
     if (!Number.isFinite(newQuantity)) {
-      newQuantity = 1;
+      return;
     }
 
     newQuantity = Math.max(
@@ -258,11 +318,30 @@ function NewSale() {
     );
   };
 
+  /* =========================================================
+     UPDATE PRICE
+  ========================================================= */
+
   const updatePrice = (id, price) => {
+    if (price === "") {
+      setItems((currentItems) =>
+        currentItems.map((item) =>
+          item.id === id
+            ? {
+                ...item,
+                price: "",
+              }
+            : item
+        )
+      );
+
+      return;
+    }
+
     let newPrice = Number(price);
 
     if (!Number.isFinite(newPrice)) {
-      newPrice = 0;
+      return;
     }
 
     newPrice = Math.max(0, newPrice);
@@ -279,16 +358,29 @@ function NewSale() {
     );
   };
 
+  /* =========================================================
+     DISCOUNT TYPE
+  ========================================================= */
+
   const handleDiscountTypeChange = (type) => {
     setDiscountType(type);
     setDiscountValue(0);
   };
 
+  /* =========================================================
+     DISCOUNT VALUE
+  ========================================================= */
+
   const handleDiscountValueChange = (value) => {
+    if (value === "") {
+      setDiscountValue(0);
+      return;
+    }
+
     let numericValue = Number(value);
 
     if (!Number.isFinite(numericValue)) {
-      numericValue = 0;
+      return;
     }
 
     numericValue = Math.max(
@@ -306,11 +398,20 @@ function NewSale() {
     setDiscountValue(numericValue);
   };
 
+  /* =========================================================
+     TAX
+  ========================================================= */
+
   const handleTaxChange = (value) => {
+    if (value === "") {
+      setTaxRate(0);
+      return;
+    }
+
     let numericValue = Number(value);
 
     if (!Number.isFinite(numericValue)) {
-      numericValue = 0;
+      return;
     }
 
     setTaxRate(
@@ -414,10 +515,27 @@ function NewSale() {
     }
   };
 
+  /* =========================================================
+     DISCOUNT SUMMARY LABEL
+  ========================================================= */
+
+  const discountSummaryLabel =
+    discountType === "percentage"
+      ? `Discount (${discountValue}%)`
+      : `Discount (${formatCurrency(
+          discountValue
+        )})`;
+
+  /* =========================================================
+     RETURN UI
+  ========================================================= */
+
   return (
     <div className="new-sale-page">
 
-      {/* PAGE HEADER */}
+      {/* =====================================================
+          PAGE HEADER
+      ===================================================== */}
 
       <div className="new-sale-header">
         <div>
@@ -438,15 +556,21 @@ function NewSale() {
         </button>
       </div>
 
-      {/* MAIN LAYOUT */}
+      {/* =====================================================
+          MAIN LAYOUT
+      ===================================================== */}
 
       <div className="sale-form-layout">
 
-        {/* LEFT SIDE */}
+        {/* ===================================================
+            LEFT SIDE
+        =================================================== */}
 
         <div className="sale-form-main">
 
-          {/* CUSTOMER DETAILS */}
+          {/* =================================================
+              CUSTOMER DETAILS
+          ================================================= */}
 
           <div className="form-card">
             <div className="card-title">
@@ -500,10 +624,13 @@ function NewSale() {
                     : "—"}
                 </strong>
               </div>
+
             </div>
           </div>
 
-          {/* SALE ITEMS */}
+          {/* =================================================
+              SALE ITEMS
+          ================================================= */}
 
           <div className="form-card">
 
@@ -527,6 +654,7 @@ function NewSale() {
             </div>
 
             <div className="items-table-wrapper">
+
               <table className="items-table">
 
                 <thead>
@@ -541,7 +669,9 @@ function NewSale() {
                 </thead>
 
                 <tbody>
+
                   {items.map((item) => {
+
                     const selectedProduct =
                       products.find(
                         (product) =>
@@ -561,6 +691,8 @@ function NewSale() {
 
                     return (
                       <tr key={item.id}>
+
+                        {/* PRODUCT */}
 
                         <td>
                           <select
@@ -596,6 +728,8 @@ function NewSale() {
                           </select>
                         </td>
 
+                        {/* AVAILABLE */}
+
                         <td>
                           <span className="stock-badge">
                             {selectedProduct
@@ -604,13 +738,14 @@ function NewSale() {
                           </span>
                         </td>
 
+                        {/* QUANTITY */}
+
                         <td>
                           <input
                             type="number"
                             min="1"
                             max={
-                              selectedProduct
-                                ?.stock
+                              selectedProduct?.stock
                             }
                             value={
                               item.quantity
@@ -626,11 +761,15 @@ function NewSale() {
                               !selectedProduct ||
                               selectedProduct.stock <= 0
                             }
+
                           />
                         </td>
 
+                        {/* PRICE */}
+
                         <td>
                           <div className="price-input">
+
                             <span>₹</span>
 
                             <input
@@ -646,9 +785,13 @@ function NewSale() {
                                 )
                               }
                               aria-label="Price"
+                              placeholder=""
                             />
+
                           </div>
                         </td>
+
+                        {/* TOTAL */}
 
                         <td>
                           <strong>
@@ -657,6 +800,8 @@ function NewSale() {
                             )}
                           </strong>
                         </td>
+
+                        {/* REMOVE */}
 
                         <td>
                           <button
@@ -668,8 +813,7 @@ function NewSale() {
                               )
                             }
                             disabled={
-                              items.length ===
-                              1
+                              items.length === 1
                             }
                             aria-label="Remove item"
                           >
@@ -680,16 +824,22 @@ function NewSale() {
                       </tr>
                     );
                   })}
+
                 </tbody>
+
               </table>
+
             </div>
           </div>
 
-          {/* DISCOUNT & TAX */}
+          {/* =================================================
+              DISCOUNT & TAX
+          ================================================= */}
 
           <div className="form-card discount-tax-card">
 
             <div className="card-title-row">
+
               <div className="card-title">
                 <h2>Discount & Tax</h2>
 
@@ -699,14 +849,14 @@ function NewSale() {
                 </p>
               </div>
 
-              <div className="section-badge">
-                Pricing
-              </div>
             </div>
 
             <div className="form-grid-three">
 
+              {/* DISCOUNT TYPE */}
+
               <div className="form-group">
+
                 <label>
                   Discount Type
                 </label>
@@ -732,14 +882,19 @@ function NewSale() {
                   Choose how the discount
                   should be applied.
                 </small>
+
               </div>
 
+              {/* DISCOUNT VALUE */}
+
               <div className="form-group">
+
                 <label>
                   Discount Value
                 </label>
 
                 <div className="input-with-suffix">
+
                   <input
                     type="number"
                     min="0"
@@ -749,12 +904,17 @@ function NewSale() {
                         ? 100
                         : undefined
                     }
-                    value={discountValue}
+                    value={
+                      discountValue === 0
+                        ? ""
+                        : discountValue
+                    }
                     onChange={(e) =>
                       handleDiscountValueChange(
                         e.target.value
                       )
                     }
+                    placeholder=""
                   />
 
                   <span>
@@ -763,6 +923,7 @@ function NewSale() {
                       ? "%"
                       : "₹"}
                   </span>
+
                 </div>
 
                 <small>
@@ -771,82 +932,71 @@ function NewSale() {
                     ? "Maximum discount: 100%"
                     : "Maximum discount cannot exceed subtotal."}
                 </small>
+
               </div>
 
+              {/* TAX RATE */}
+
               <div className="form-group">
+
                 <label>
                   Tax Rate
                 </label>
 
                 <div className="input-with-suffix">
+
                   <input
                     type="number"
                     min="0"
-                    value={taxRate}
+                    value={
+                      taxRate === 0
+                        ? ""
+                        : taxRate
+                    }
                     onChange={(e) =>
                       handleTaxChange(
                         e.target.value
                       )
                     }
+                    placeholder=""
                   />
 
                   <span>%</span>
+
                 </div>
 
                 <small>
                   Tax is calculated after
                   discount.
                 </small>
+
               </div>
+
             </div>
 
-            <div className="discount-preview">
-
-              <div className="preview-item">
-                <span>
-                  Discount Applied
-                </span>
-
-                <strong>
-                  {discountType ===
-                  "percentage"
-                    ? `${discountValue}%`
-                    : formatCurrency(
-                        discountAmount
-                      )}
-                </strong>
-              </div>
-
-              <div className="preview-divider" />
-
-              <div className="preview-item">
-                <span>
-                  Tax Rate
-                </span>
-
-                <strong>
-                  {taxRate}%
-                </strong>
-              </div>
-            </div>
           </div>
 
-          {/* PAYMENT DETAILS */}
+          {/* =================================================
+              PAYMENT DETAILS
+          ================================================= */}
 
           <div className="form-card">
 
             <div className="card-title">
+
               <h2>Payment Details</h2>
 
               <p>
                 Select payment method and
                 status.
               </p>
+
             </div>
 
             <div className="form-grid">
 
               <div className="form-group">
+
                 <label>
                   Payment Method
                 </label>
@@ -879,9 +1029,11 @@ function NewSale() {
                     Credit
                   </option>
                 </select>
+
               </div>
 
               <div className="form-group">
+
                 <label>
                   Payment Status
                 </label>
@@ -906,28 +1058,38 @@ function NewSale() {
                     Partial
                   </option>
                 </select>
+
               </div>
+
             </div>
+
           </div>
 
         </div>
 
-        {/* RIGHT SUMMARY */}
+        {/* ===================================================
+            RIGHT SUMMARY
+        =================================================== */}
 
         <aside className="sale-summary-panel">
 
+          {/* SUMMARY HEADER */}
+
           <div className="summary-panel-header">
+
             <div>
               <h2>Sale Summary</h2>
-
-              <span>SALE-0004</span>
             </div>
+
           </div>
 
           {/* CUSTOMER */}
 
           <div className="summary-customer">
-            <span>Bill To</span>
+
+            <span>
+              Bill To
+            </span>
 
             <strong>
               {selectedCustomer
@@ -940,6 +1102,7 @@ function NewSale() {
                 ? selectedCustomer.phone
                 : "Select a customer"}
             </p>
+
           </div>
 
           {/* ITEMS */}
@@ -947,6 +1110,7 @@ function NewSale() {
           <div className="summary-items">
 
             {items.map((item) => {
+
               const product =
                 products.find(
                   (p) =>
@@ -963,7 +1127,9 @@ function NewSale() {
                   className="summary-item"
                   key={item.id}
                 >
+
                   <div>
+
                     <strong>
                       {product.name}
                     </strong>
@@ -974,14 +1140,16 @@ function NewSale() {
                         item.price
                       )}
                     </span>
+
                   </div>
 
                   <strong>
                     {formatCurrency(
-                      item.quantity *
-                        item.price
+                      Number(item.quantity || 0) *
+                        Number(item.price || 0)
                     )}
                   </strong>
+
                 </div>
               );
             })}
@@ -996,33 +1164,59 @@ function NewSale() {
                 </span>
               </div>
             )}
+
           </div>
 
-          {/* CALCULATIONS */}
+          {/* =================================================
+              CALCULATIONS
+          ================================================= */}
 
           <div className="summary-calculations">
 
+            {/* SUBTOTAL */}
+
             <div>
-              <span>Subtotal</span>
+
+              <span>
+                Subtotal
+              </span>
 
               <strong>
                 {formatCurrency(
                   subtotal
                 )}
               </strong>
+
             </div>
 
-            <div>
-              <span>Discount</span>
+            {/* DISCOUNT */}
 
-              <strong className="discount-value">
-                -{formatCurrency(
-                  discountAmount
-                )}
+            <div>
+
+              <span>
+                {discountSummaryLabel}
+              </span>
+
+              <strong
+                className={
+                  discountAmount > 0
+                    ? "discount-value"
+                    : ""
+                }
+              >
+                {discountAmount > 0
+                  ? `-${formatCurrency(
+                      discountAmount
+                    )}`
+                  : formatCurrency(0)}
               </strong>
+
             </div>
 
+            {/* TAX */}
+
             <div>
+
               <span>
                 Tax ({taxRate}%)
               </span>
@@ -1032,27 +1226,37 @@ function NewSale() {
                   taxAmount
                 )}
               </strong>
+
             </div>
+
           </div>
 
-          {/* GRAND TOTAL */}
+          {/* =================================================
+              GRAND TOTAL
+          ================================================= */}
 
           <div className="summary-grand-total">
 
-            <span>Grand Total</span>
+            <span>
+              Grand Total
+            </span>
 
             <strong>
               {formatCurrency(
                 grandTotal
               )}
             </strong>
+
           </div>
 
-          {/* PAYMENT */}
+          {/* =================================================
+              PAYMENT
+          ================================================= */}
 
           <div className="summary-payment">
 
             <div>
+
               <span>
                 Payment Method
               </span>
@@ -1060,9 +1264,11 @@ function NewSale() {
               <strong>
                 {paymentMethod}
               </strong>
+
             </div>
 
             <div>
+
               <span>
                 Payment Status
               </span>
@@ -1074,10 +1280,14 @@ function NewSale() {
               >
                 {paymentStatus}
               </strong>
+
             </div>
+
           </div>
 
-          {/* ACTIONS */}
+          {/* =================================================
+              ACTIONS
+          ================================================= */}
 
           <div className="sale-actions">
 
@@ -1102,7 +1312,9 @@ function NewSale() {
           </div>
 
         </aside>
+
       </div>
+
     </div>
   );
 }

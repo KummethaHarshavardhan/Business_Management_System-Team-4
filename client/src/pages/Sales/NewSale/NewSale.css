@@ -9,7 +9,7 @@
   margin: 0 auto;
   padding: 28px 4px 40px;
   box-sizing: border-box;
-  overflow: hidden;
+  overflow-x: hidden;
 }
 
 /* =========================================================
@@ -83,7 +83,7 @@
    MAIN SALE GRID
 ========================================================= */
 
-.sale-grid {
+.sale-form-layout {
   width: 100%;
   min-width: 0;
 
@@ -98,13 +98,7 @@
   align-items: start;
 }
 
-.sale-main {
-  min-width: 0;
-  width: 100%;
-}
-
-/* If existing JSX uses sale-main-card */
-.sale-main-card {
+.sale-form-main {
   min-width: 0;
   width: 100%;
 }
@@ -113,12 +107,7 @@
    FORM CARDS
 ========================================================= */
 
-.sale-form-card,
-.sale-main-card {
-  box-sizing: border-box;
-}
-
-.sale-form-card {
+.form-card {
   width: 100%;
   min-width: 0;
 
@@ -134,6 +123,8 @@
   box-shadow:
     0 3px 12px rgba(15, 23, 42, 0.04);
 
+  box-sizing: border-box;
+
   overflow: hidden;
 }
 
@@ -141,14 +132,12 @@
    CARD HEADINGS
 ========================================================= */
 
-.sale-card-title,
 .card-title {
   min-width: 0;
 
   margin-bottom: 22px;
 }
 
-.sale-card-title h2,
 .card-title h2 {
   margin: 0;
 
@@ -160,7 +149,6 @@
   line-height: 1.3;
 }
 
-.sale-card-title p,
 .card-title p {
   margin: 6px 0 0;
 
@@ -170,7 +158,6 @@
   line-height: 1.5;
 }
 
-.sale-card-header,
 .card-header-row {
   min-width: 0;
 
@@ -183,7 +170,6 @@
   margin-bottom: 22px;
 }
 
-.sale-card-header > div,
 .card-header-row > div {
   min-width: 0;
 }
@@ -235,6 +221,10 @@
   font-weight: 600;
 }
 
+.form-group label span {
+  color: #dc2626;
+}
+
 /* =========================================================
    INPUTS / SELECTS
 ========================================================= */
@@ -271,6 +261,14 @@
 
   box-shadow:
     0 0 0 3px rgba(91, 76, 226, 0.1);
+}
+
+.form-group small {
+  color: #64748b;
+
+  font-size: 12px;
+
+  line-height: 1.5;
 }
 
 /* =========================================================
@@ -434,6 +432,24 @@
   max-width: 100px;
 }
 
+/* =========================================================
+   REMOVE NUMBER INPUT ARROWS
+========================================================= */
+
+.items-table input[type="number"]::-webkit-inner-spin-button,
+.items-table input[type="number"]::-webkit-outer-spin-button,
+.input-with-suffix input[type="number"]::-webkit-inner-spin-button,
+.input-with-suffix input[type="number"]::-webkit-outer-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+
+.items-table input[type="number"],
+.input-with-suffix input[type="number"] {
+  -moz-appearance: textfield;
+  appearance: textfield;
+}
+
 .items-table select:focus,
 .items-table input:focus {
   border-color: #5b4ce2;
@@ -446,6 +462,36 @@
   color: #172033;
 
   white-space: nowrap;
+}
+
+/* =========================================================
+   PRICE INPUT
+========================================================= */
+
+.price-input {
+  display: flex;
+
+  align-items: center;
+
+  gap: 8px;
+
+  width: 100%;
+}
+
+.currency-symbol {
+  flex-shrink: 0;
+
+  color: #64748b;
+
+  font-size: 16px;
+  font-weight: 500;
+}
+
+.price-input input {
+  width: 100%;
+  max-width: 125px;
+
+  flex: 1;
 }
 
 /* =========================================================
@@ -482,10 +528,47 @@
 }
 
 /* =========================================================
+   DISCOUNT & TAX
+========================================================= */
+
+.discount-tax-card {
+  overflow: visible;
+}
+
+/* =========================================================
+   INPUT WITH SUFFIX
+========================================================= */
+
+.input-with-suffix {
+  width: 100%;
+
+  display: flex;
+
+  align-items: center;
+
+  gap: 8px;
+}
+
+.input-with-suffix input {
+  flex: 1;
+
+  width: 100%;
+  min-width: 0;
+}
+
+.input-with-suffix span {
+  flex-shrink: 0;
+
+  color: #64748b;
+
+  font-size: 15px;
+  font-weight: 500;
+}
+
+/* =========================================================
    SALE SUMMARY
 ========================================================= */
 
-.sale-summary-card,
 .sale-summary-panel {
   width: 100%;
   min-width: 0;
@@ -509,7 +592,6 @@
    SUMMARY HEADER
 ========================================================= */
 
-.summary-header,
 .summary-panel-header {
   padding: 21px 22px;
 
@@ -522,30 +604,12 @@
   gap: 10px;
 }
 
-.summary-header h2,
 .summary-panel-header h2 {
   margin: 0;
 
   font-size: 18px;
 
   color: #172033;
-}
-
-.summary-header span,
-.summary-panel-header span {
-  flex-shrink: 0;
-
-  color: #4f46e5;
-
-  background: #f0efff;
-
-  padding: 6px 9px;
-
-  border-radius: 6px;
-
-  font-size: 12px;
-
-  font-weight: 700;
 }
 
 /* =========================================================
@@ -647,6 +711,16 @@
   font-size: 13px;
 
   white-space: nowrap;
+}
+
+.summary-empty {
+  padding: 20px 0;
+
+  text-align: center;
+
+  color: #94a3b8;
+
+  font-size: 13px;
 }
 
 /* =========================================================
@@ -771,8 +845,7 @@
    SALE ACTIONS
 ========================================================= */
 
-.sale-actions,
-.sale-form-actions {
+.sale-actions {
   width: 100%;
 
   display: flex;
@@ -785,13 +858,13 @@
 
   margin-top: 4px;
 
+  padding: 0 22px 22px;
+
   box-sizing: border-box;
 }
 
 .cancel-btn,
-.create-sale-btn,
-.create-btn,
-.sale-submit-btn {
+.generate-btn {
   min-width: 130px;
 
   height: 44px;
@@ -823,9 +896,7 @@
   background: #f8fafc;
 }
 
-.create-sale-btn,
-.create-btn,
-.sale-submit-btn {
+.generate-btn {
   border: none;
 
   background: #4f46e5;
@@ -833,9 +904,7 @@
   color: #ffffff;
 }
 
-.create-sale-btn:hover,
-.create-btn:hover,
-.sale-submit-btn:hover {
+.generate-btn:hover {
   background: #4338ca;
 }
 
@@ -845,11 +914,10 @@
 
 @media (max-width: 1100px) {
 
-  .sale-grid {
+  .sale-form-layout {
     grid-template-columns: minmax(0, 1fr);
   }
 
-  .sale-summary-card,
   .sale-summary-panel {
     position: static;
 
@@ -858,7 +926,7 @@
     width: 100%;
   }
 
-  .sale-main {
+  .sale-form-main {
     order: 1;
   }
 }
@@ -882,9 +950,7 @@
     overflow-x: hidden;
   }
 
-  /* -----------------------------------------
-     HEADER
-  ----------------------------------------- */
+  /* HEADER */
 
   .new-sale-header {
     width: 100%;
@@ -914,31 +980,28 @@
     text-align: center;
   }
 
-  /* -----------------------------------------
-     GRID
-  ----------------------------------------- */
+  /* GRID */
 
-  .sale-grid {
+  .sale-form-layout {
     width: 100%;
     max-width: 100%;
 
-    grid-template-columns: minmax(0, 1fr);
+    grid-template-columns:
+      minmax(0, 1fr);
 
     gap: 16px;
 
     min-width: 0;
   }
 
-  .sale-main {
+  .sale-form-main {
     width: 100%;
     min-width: 0;
   }
 
-  /* -----------------------------------------
-     CARDS
-  ----------------------------------------- */
+  /* CARDS */
 
-  .sale-form-card {
+  .form-card {
     width: 100%;
     max-width: 100%;
 
@@ -951,11 +1014,8 @@
     box-sizing: border-box;
   }
 
-  /* -----------------------------------------
-     CARD HEADERS
-  ----------------------------------------- */
+  /* HEADERS */
 
-  .sale-card-header,
   .card-header-row {
     flex-direction: column;
 
@@ -964,7 +1024,6 @@
     gap: 12px;
   }
 
-  .sale-card-header > div,
   .card-header-row > div {
     width: 100%;
   }
@@ -975,15 +1034,14 @@
     min-height: 42px;
   }
 
-  /* -----------------------------------------
-     FORM GRID
-  ----------------------------------------- */
+  /* FORM GRID */
 
   .form-grid,
   .form-grid-three {
     width: 100%;
 
-    grid-template-columns: minmax(0, 1fr);
+    grid-template-columns:
+      minmax(0, 1fr);
 
     gap: 14px;
   }
@@ -1001,9 +1059,7 @@
     min-width: 0;
   }
 
-  /* -----------------------------------------
-     CUSTOMER
-  ----------------------------------------- */
+  /* CUSTOMER */
 
   .customer-preview {
     width: 100%;
@@ -1013,9 +1069,7 @@
     box-sizing: border-box;
   }
 
-  /* -----------------------------------------
-     ITEMS TABLE
-  ----------------------------------------- */
+  /* ITEMS TABLE */
 
   .items-table-wrapper {
     width: 100%;
@@ -1034,11 +1088,14 @@
     min-width: 720px;
   }
 
-  /* -----------------------------------------
-     SUMMARY
-  ----------------------------------------- */
+  /* PRICE */
 
-  .sale-summary-card,
+  .price-input {
+    gap: 7px;
+  }
+
+  /* SUMMARY */
+
   .sale-summary-panel {
     width: 100%;
     max-width: 100%;
@@ -1052,7 +1109,6 @@
     overflow: hidden;
   }
 
-  .summary-header,
   .summary-panel-header {
     padding: 17px 18px;
   }
@@ -1081,12 +1137,9 @@
     padding: 16px 18px 18px;
   }
 
-  /* -----------------------------------------
-     ACTION BUTTONS
-  ----------------------------------------- */
+  /* ACTION BUTTONS */
 
-  .sale-actions,
-  .sale-form-actions {
+  .sale-actions {
     width: 100%;
 
     flex-direction: column-reverse;
@@ -1096,12 +1149,12 @@
     gap: 10px;
 
     margin-top: 0;
+
+    padding: 0 18px 18px;
   }
 
   .cancel-btn,
-  .create-sale-btn,
-  .create-btn,
-  .sale-submit-btn {
+  .generate-btn {
     width: 100%;
 
     min-width: 0;
@@ -1132,7 +1185,7 @@
     font-size: 12px;
   }
 
-  .sale-form-card {
+  .form-card {
     padding: 15px;
 
     border-radius: 10px;
@@ -1140,12 +1193,10 @@
     margin-bottom: 14px;
   }
 
-  .sale-card-title h2,
   .card-title h2 {
     font-size: 17px;
   }
 
-  .sale-card-title p,
   .card-title p {
     font-size: 12px;
   }
@@ -1172,7 +1223,6 @@
     min-width: 720px;
   }
 
-  .summary-header,
   .summary-panel-header {
     padding: 15px;
   }
@@ -1199,6 +1249,10 @@
     padding: 14px 15px 16px;
   }
 
+  .sale-actions {
+    padding: 0 15px 15px;
+  }
+
   .summary-grand-total strong {
     font-size: 19px;
   }
@@ -1218,11 +1272,10 @@
     font-size: 11px;
   }
 
-  .sale-form-card {
+  .form-card {
     padding: 13px;
   }
 
-  .sale-card-title h2,
   .card-title h2 {
     font-size: 16px;
   }
@@ -1264,6 +1317,7 @@
 
 .new-sale-page {
   max-width: 100%;
+  overflow-x: hidden;
 }
 
 .new-sale-page img,
@@ -1281,19 +1335,13 @@
 }
 
 /*
-   Important:
-   Only the products/items table is allowed to scroll
-   horizontally on very small screens.
+   Only the products/items table is allowed
+   to scroll horizontally on small screens.
 */
 
-.new-sale-page {
-  overflow-x: hidden;
-}
-
-.sale-grid,
-.sale-main,
-.sale-form-card,
-.sale-summary-card,
+.sale-form-layout,
+.sale-form-main,
+.form-card,
 .sale-summary-panel {
   min-width: 0;
   max-width: 100%;

@@ -473,6 +473,16 @@ body {
 
 
 /* =========================================================
+   MOBILE SIDEBAR CLOSE BUTTON
+   HIDDEN ON DESKTOP
+   ========================================================= */
+
+.mobile-sidebar-close {
+  display: none;
+}
+
+
+/* =========================================================
    TABLET
    ========================================================= */
 
@@ -559,14 +569,22 @@ body {
   .brand {
     height: 84px;
 
-    padding: 16px 18px;
+    padding: 16px 14px 16px 18px;
 
     gap: 14px;
+
+    position: relative;
   }
 
   /* B completely hidden on mobile */
+
   .brand-logo {
     display: none;
+  }
+
+  .brand-details {
+    min-width: 0;
+    flex: 1;
   }
 
   .brand-details h2 {
@@ -575,6 +593,53 @@ body {
 
   .brand-details span {
     font-size: 12px;
+  }
+
+
+  /* =======================================================
+     MOBILE CLOSE X BUTTON
+     RIGHT SIDE OF SIDEBAR HEADER
+     ======================================================= */
+
+  .mobile-sidebar-close {
+    width: 40px;
+    height: 40px;
+
+    flex-shrink: 0;
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    margin-left: auto;
+
+    border: 0;
+    border-radius: 9px;
+
+    background: rgba(255, 255, 255, 0.08);
+
+    color: #ffffff;
+
+    cursor: pointer;
+
+    transition:
+      background 0.2s ease,
+      transform 0.2s ease;
+  }
+
+  .mobile-sidebar-close svg {
+    width: 23px;
+    height: 23px;
+
+    stroke-width: 2.4;
+  }
+
+  .mobile-sidebar-close:hover {
+    background: rgba(255, 255, 255, 0.16);
+  }
+
+  .mobile-sidebar-close:active {
+    transform: scale(0.94);
   }
 
 
@@ -610,9 +675,10 @@ body {
      MOBILE HAMBURGER BUTTON
      
      IMPORTANT:
-     This button is OUTSIDE sidebar.
-     Therefore it remains visible even when sidebar
-     is closed.
+     Visible ONLY when menu is CLOSED.
+     
+     When sidebar opens, this button is removed from
+     the DOM and X button appears inside sidebar.
      ======================================================= */
 
   .mobile-hamburger {
@@ -655,18 +721,6 @@ body {
 
   .mobile-hamburger:hover {
     background: #f3f2ff;
-  }
-
-  /*
-    IMPORTANT:
-    Even when menu is OPEN, it remains the same
-    3-line hamburger.
-    No X is shown.
-  */
-
-  .mobile-hamburger-open {
-    background: #ffffff;
-    color: #5046e5;
   }
 
 
@@ -792,5 +846,20 @@ body {
   .header-avatar {
     width: 40px;
     height: 40px;
+  }
+
+
+  /* =======================================================
+     SMALL MOBILE X BUTTON
+     ======================================================= */
+
+  .mobile-sidebar-close {
+    width: 38px;
+    height: 38px;
+  }
+
+  .mobile-sidebar-close svg {
+    width: 22px;
+    height: 22px;
   }
 }
