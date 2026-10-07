@@ -52,7 +52,7 @@ export const createSale = async (req, res) => {
         };
 
         for (const item of bill.items) {
-            await decreaseStock(item.product, item.quantity);
+            await decreaseStock(item.product, item.quantity, req.headers.authorization);//here after check apis remove req.headers now i keep for this testing apis
             decreased.push(item);
         }
 

@@ -1,25 +1,19 @@
-const API_URL = "http://localhost:5002/api/products";
+import axios from "axios";
+import { getAuthHeaders, toError } from "./authHeader";
+
+// Team 4 server - existing testproducts collection (read-only)
+const API_URL = "http://localhost:5003/api/test-products";
 
 export const getProducts = async () => {
-  const response = await fetch(API_URL);
-
-  const data = await response.json();
-
-  if (!response.ok) {
-    throw new Error(data.message || "Failed to fetch products");
+  try {
+    const response = await axios.get(API_URL, { headers: getAuthHeaders() });
+    return response.data;
+  } catch (error) {
+    throw toError(error, "Failed to fetch products");
   }
-
-  return data;
 };
 
 export const getProductById = async (id) => {
-  const response = await fetch(`${API_URL}/${id}`);
-
-  const data = await response.json();
-
-  if (!response.ok) {
-    throw new Error(data.message || "Failed to fetch product");
-  }
-
-  return data;
+  const products = await getProducts();
+  return products.find((product) => String(product._id) === String(id)) || null;
 };

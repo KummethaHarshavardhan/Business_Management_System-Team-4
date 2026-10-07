@@ -6,6 +6,7 @@ import './NewInvoice.css';
 import { getCustomers } from '../../../services/customer';
 import { getProducts } from '../../../services/product';
 import { createInvoice } from '../../../services/invoice';
+import { createSale } from '../../../services/sales';
 
 function NewInvoice() {
   const navigate = useNavigate();
@@ -253,13 +254,26 @@ function NewInvoice() {
       paymentMethod,
       paymentStatus,
     };
+    let sale;
+
     try {
-      await createInvoice(invoiceData);
+      // Team 4 invoices are generated from a sale, so create the sale first
+      sale = await createSale(invoiceData);
+    } catch (error) {
+      console.error('Sale API Error:', error);
+      alert(error.message);
+      return;
+    }
+
+    try {
+      await createInvoice({ saleId: sale._id });
       alert('Invoice created successfully.');
       navigate('/invoices');
     } catch (error) {
       console.error('Invoice API Error:',error);
-      alert(error.message);
+      alert(
+        `Sale created (ID: ${sale._id}) but invoice failed: ${error.message}`
+      );
     }
   };
   
@@ -656,7 +670,7 @@ function NewInvoice() {
                   <option>Cash</option>
                   <option>UPI</option>
                   <option>Card</option>
-                  <option>Bank Transfer</option>
+                  <option value="BankTransfer">Bank Transfer</option>
                   <option>Credit</option>
 
                 </select>

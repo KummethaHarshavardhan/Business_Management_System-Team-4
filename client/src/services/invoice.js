@@ -1,41 +1,36 @@
+import axios from "axios";
+import { getAuthHeaders, toError } from "./authHeader";
+
+// Team 4 - Invoices
 const API_URL = "http://localhost:5003/api/invoices";
 
 export const createInvoice = async (invoiceData, token) => {
-  const response = await fetch(API_URL, {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-      Authorization: token,
-    },
-    body: JSON.stringify(invoiceData),
-  });
-  const data = await response.json();
-  if (!response.ok) {
-    throw new Error(data.message || "Failed to create invoice");
+  try {
+    const response = await axios.post(API_URL, invoiceData, {
+      headers: getAuthHeaders(token),
+    });
+    return response.data;
+  } catch (error) {
+    throw toError(error, "Failed to create invoice");
   }
-  return data;
 };
 
 export const getInvoices = async () => {
-  const response = await fetch(API_URL);
-
-  const data = await response.json();
-
-  if (!response.ok) {
-    throw new Error(data.message || "Failed to fetch invoices");
+  try {
+    const response = await axios.get(API_URL, { headers: getAuthHeaders() });
+    return response.data;
+  } catch (error) {
+    throw toError(error, "Failed to fetch invoices");
   }
-
-  return data;
 };
 
 export const getInvoiceById = async (id) => {
-  const response = await fetch(`${API_URL}/${id}`);
-
-  const data = await response.json();
-
-  if (!response.ok) {
-    throw new Error(data.message || "Failed to fetch invoice");
+  try {
+    const response = await axios.get(`${API_URL}/${id}`, {
+      headers: getAuthHeaders(),
+    });
+    return response.data;
+  } catch (error) {
+    throw toError(error, "Failed to fetch invoice");
   }
-
-  return data;
 };

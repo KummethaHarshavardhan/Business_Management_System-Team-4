@@ -4,6 +4,7 @@ import "./Billing.css";
 import { getCustomers } from "../../services/customer";
 import { getProducts } from "../../services/product";
 import { createSale } from "../../services/sales";
+import { createInvoice } from "../../services/invoice";
 
 function Billing() {
   const [customers, setCustomers] = useState([]);
@@ -62,6 +63,44 @@ function Billing() {
     };
     fetchData();
   }, []);
+
+  // Re-read products (latest stockQuantity) from the database
+  const refreshProducts = async () => {
+    try {
+      const productResponse = await getProducts();
+      const productData = Array.isArray(productResponse)
+        ? productResponse
+        : productResponse.data || [];
+
+      const latestProducts = productData.map((product) => ({
+        id: product._id || product.id,
+        name: product.productName || product.name,
+        price: product.sellingPrice ?? product.price ?? 0,
+        stock: product.stockQuantity ?? product.stock ?? 0,
+      }));
+
+      setProducts(latestProducts);
+      return latestProducts;
+    } catch (error) {
+      console.error("Failed to refresh product stock:", error);
+      return null;
+    }
+  };
+
+  // Show the latest stock whenever a product is selected
+  const handleProductSelect = async (id) => {
+    setProductId(id);
+
+    if (!id) return;
+
+    const latestProducts = await refreshProducts();
+    const latest = latestProducts?.find((product) => product.id === id);
+
+    if (latest && Number(latest.stock) <= 0) {
+      alert(`${latest.name} is Out of Stock.`);
+      setProductId("");
+    }
+  };
 
   const selectedProduct = products.find(
     (product) => product.id === productId
@@ -277,9 +316,23 @@ function Billing() {
     try {
       const sale = await createSale(saleData);
 
-      alert(
-        `Sale created successfully! Sale ID: ${sale._id}`
-      );
+      // Sale is saved and stock reduced: clear the order and show latest stock
+      setCart([]);
+      setProductId("");
+      setQuantity(1);
+      refreshProducts();
+
+      try {
+        await createInvoice({ saleId: sale._id });
+
+        alert(
+          `Sale and invoice created successfully! Sale ID: ${sale._id}`
+        );
+      } catch (invoiceError) {
+        alert(
+          `Sale created (ID: ${sale._id}) but invoice failed: ${invoiceError.message}`
+        );
+      }
     } catch (error) {
       alert(
         `Could not create sale: ${error.message}`
@@ -408,7 +461,7 @@ function Billing() {
             <select
               value={productId}
               onChange={(e) =>
-                setProductId(e.target.value)
+                handleProductSelect(e.target.value)
               }
             >
               <option value="">

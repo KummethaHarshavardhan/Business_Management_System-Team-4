@@ -2,6 +2,7 @@ import { useMemo, useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import "./Sales.css";
 import { getSales } from "../../services/sales";
+import { getCustomers } from "../../services/customer";
 
 function Sales() {
   const navigate = useNavigate();
@@ -16,9 +17,55 @@ function Sales() {
     const fetchSales = async () => {
       try {
         const data = await getSales();
-        console.log("Sales API:", data);
         const salesData = Array.isArray(data) ? data : data.data || [];
-        setSales(salesData);
+
+        // Customer name/phone for the existing UI (sale only stores the customer id)
+        let customerMap = {};
+        try {
+          const customerResponse = await getCustomers();
+          const customerList = Array.isArray(customerResponse)
+            ? customerResponse
+            : customerResponse.data || [];
+          customerMap = Object.fromEntries(
+            customerList.map((c) => [String(c._id || c.id), c])
+          );
+        } catch (customerError) {
+          console.error("Customer lookup error:", customerError);
+        }
+
+        // Map the Team 4 API sale document to the shape this page already renders
+        const formattedSales = salesData.map((sale) => {
+          const customerId = String(
+            sale.customer?._id || sale.customer || ""
+          );
+          const customer = customerMap[customerId];
+          const subtotal = Number(sale.subtotal || 0);
+          const discountValue = Number(sale.discount?.value || 0);
+          const discountAmount =
+            sale.discount?.type === "percentage"
+              ? (subtotal * discountValue) / 100
+              : discountValue;
+
+          return {
+            ...sale,
+            id: sale._id
+              ? `SALE-${String(sale._id).slice(-6).toUpperCase()}`
+              : sale.id,
+            customer: customer?.name || customerId,
+            phone: customer?.phone || "",
+            date: sale.createdAt
+              ? new Date(sale.createdAt).toLocaleDateString("en-IN")
+              : "",
+            items: Array.isArray(sale.items)
+              ? sale.items.length
+              : Number(sale.items || 0),
+            amount: Number(sale.grandTotal ?? sale.amount ?? 0),
+            tax: Number(sale.tax || 0),
+            discount: discountAmount,
+          };
+        });
+
+        setSales(formattedSales);
       } catch (error) {
         console.error("Sales API Error:", error);
       }

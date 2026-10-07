@@ -2,6 +2,9 @@ import { useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import "./Return.css";
 import { getReturns } from "../../services/return";
+import { getSales } from "../../services/sales";
+import { getInvoices } from "../../services/invoice";
+import { getCustomers } from "../../services/customer";
 
 function Return() {
   const navigate = useNavigate();
@@ -16,10 +19,63 @@ function Return() {
       try {
         const data = await getReturns();
 
+        const returnData = Array.isArray(data)
+          ? data
+          : data.data || [];
+
+        // A return only stores sale, product and quantity, so look up the
+        // related sale, invoice and customer to fill the columns this page shows.
+        const toList = (response) =>
+          Array.isArray(response) ? response : response?.data || [];
+
+        const [salesList, invoicesList, customersList] = await Promise.all([
+          getSales().then(toList).catch(() => []),
+          getInvoices().then(toList).catch(() => []),
+          getCustomers().then(toList).catch(() => []),
+        ]);
+
+        const saleMap = Object.fromEntries(
+          salesList.map((sale) => [String(sale._id), sale])
+        );
+        const invoiceMap = Object.fromEntries(
+          invoicesList.map((invoice) => [String(invoice.sale), invoice])
+        );
+        const customerMap = Object.fromEntries(
+          customersList.map((customer) => [String(customer._id), customer])
+        );
+
         setReturns(
-          Array.isArray(data)
-            ? data
-            : data.data || []
+          returnData.map((item) => {
+            const saleId = String(item.sale?._id || item.sale || "");
+            const productId = String(item.product?._id || item.product || "");
+            const sale = saleMap[saleId];
+            const invoice = invoiceMap[saleId];
+            const customer = sale ? customerMap[String(sale.customer)] : null;
+            const soldItem = sale?.items?.find(
+              (saleItem) => String(saleItem.product) === productId
+            );
+            const quantity = Number(item.quantityReturned || 0);
+
+            return {
+              ...item,
+              id: item._id
+                ? `RET-${String(item._id).slice(-6).toUpperCase()}`
+                : item.id,
+              invoiceId: invoice?.invoiceNumber || "",
+              saleId: saleId
+                ? `SALE-${saleId.slice(-6).toUpperCase()}`
+                : "",
+              customer:
+                invoice?.customerDetails?.name || customer?.name || "",
+              phone:
+                invoice?.customerDetails?.phone || customer?.phone || "",
+              date: item.createdAt
+                ? new Date(item.createdAt).toLocaleDateString("en-IN")
+                : "",
+              items: quantity,
+              amount: Number(soldItem?.price || 0) * quantity,
+            };
+          })
         );
       } catch (error) {
         console.error("Returns API Error:", error);

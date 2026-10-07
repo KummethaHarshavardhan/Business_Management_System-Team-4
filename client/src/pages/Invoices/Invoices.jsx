@@ -16,10 +16,24 @@ function Invoices() {
       try {
         const data = await getInvoices();
 
+        const invoiceData = Array.isArray(data)
+          ? data
+          : data.data || [];
+
+        // Map the Team 4 invoice document to the shape this page already renders
         setInvoices(
-          Array.isArray(data)
-            ? data
-            : data.data || []
+          invoiceData.map((invoice) => ({
+            ...invoice,
+            id: invoice.invoiceNumber || invoice._id || invoice.id,
+            customer:
+              invoice.customerDetails?.name || invoice.customer || "",
+            phone:
+              invoice.customerDetails?.phone || invoice.phone || "",
+            date: invoice.invoiceDate
+              ? new Date(invoice.invoiceDate).toLocaleDateString("en-IN")
+              : invoice.date || "",
+            amount: Number(invoice.grandTotal ?? invoice.amount ?? 0),
+          }))
         );
       } catch (error) {
         console.error("Invoices API Error:", error);

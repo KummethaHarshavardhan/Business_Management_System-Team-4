@@ -4,6 +4,8 @@ import dotenv from 'dotenv'
 import connectDB from './config/db.js'
 import invoiceRoutes from './routes/invoiceRoutes.js'
 import returnRoutes from './routes/returnRoutes.js'
+import saleRoutes from './routes/saleRoutes.js'
+import testDataRoutes from './routes/testDataRoutes.js'
 
 dotenv.config();
 
@@ -18,6 +20,8 @@ app.use(express.json());
 
 app.use('/api/invoices', invoiceRoutes);
 app.use('/api/returns', returnRoutes);
+app.use('/api/sales', saleRoutes);
+app.use('/api', testDataRoutes);
 
 app.get('/api/health', (req, res) => res.json({ status: 'ok', module: 'team4-sales-billing' }));
 

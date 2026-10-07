@@ -4,7 +4,10 @@ const BUSINESS_SERVICE_URL = 'http://localhost:5000/api/business';
 
 export const getBusinessDetails = async (token) => {
   const res = await fetch(BUSINESS_SERVICE_URL, {
-    headers: token ? { Authorization: `Bearer ${token}` } : {},
+
+     // at last integration remove comments for below line i mean 9 line remove comment 10 line give comments why means for testing now i give that    
+    // headers: token ? { Authorization: token}` } : {},
+    headers: token ? { Authorization: token } : {},
   });
 
   if (!res.ok) {

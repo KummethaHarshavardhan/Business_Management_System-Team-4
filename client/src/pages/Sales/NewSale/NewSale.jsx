@@ -4,6 +4,15 @@ import "./NewSale.css";
 import { getCustomers } from "../../../services/customer";
 import { getProducts } from "../../../services/product";
 import { createSale } from "../../../services/sales";
+
+// Existing product -> UI mapping (stock comes from Team 4 `stockQuantity`)
+const mapProduct = (product) => ({
+  id: product._id || product.id,
+  name: product.productName || product.name,
+  price: Number(product.sellingPrice ?? product.price ?? 0),
+  stock: Number(product.stockQuantity ?? product.stock ?? 0),
+});
+
 function NewSale() {
   const navigate = useNavigate();
   
@@ -32,16 +41,7 @@ function NewSale() {
           gstNumber: customer.gstNumber,
         }));
 
-        const formattedProducts = productData.map((product) => ({
-          id: product._id || product.id,
-          name: product.productName || product.name,
-          price: Number(
-            product.sellingPrice ?? product.price ?? 0
-          ),
-          stock: Number(
-            product.stockQuantity ?? product.stock ?? 0
-          ),
-        }));
+        const formattedProducts = productData.map(mapProduct);
 
         setCustomers(formattedCustomers);
         setProducts(formattedProducts);
@@ -163,12 +163,42 @@ function NewSale() {
     );
   };
 
-  const updateProduct = (id, productId) => {
-    const selectedProduct = products.find(
+  const updateProduct = async (id, productId) => {
+    // Fetch the latest stock from the database every time a product is selected
+    let latestProducts = products;
+
+    if (productId) {
+      try {
+        const productResponse = await getProducts();
+        const productData = Array.isArray(productResponse)
+          ? productResponse
+          : productResponse.data || [];
+
+        latestProducts = productData.map(mapProduct);
+        setProducts(latestProducts);
+      } catch (error) {
+        console.error("Failed to refresh product stock:", error);
+      }
+    }
+
+    const selectedProduct = latestProducts.find(
       (product) =>
         String(product.id) ===
         String(productId)
     );
+
+    if (selectedProduct && selectedProduct.stock <= 0) {
+      alert(`${selectedProduct.name} is Out of Stock.`);
+
+      setItems((currentItems) =>
+        currentItems.map((item) =>
+          item.id === id
+            ? { ...item, productId: "", price: 0, quantity: 1 }
+            : item
+        )
+      );
+      return;
+    }
 
     setItems((currentItems) =>
       currentItems.map((item) =>
@@ -179,15 +209,10 @@ function NewSale() {
               price: selectedProduct
                 ? selectedProduct.price
                 : 0,
-              quantity: selectedProduct
-                ? Math.min(
-                    Math.max(
-                      1,
-                      Number(item.quantity) || 1
-                    ),
-                    selectedProduct.stock
-                  )
-                : 1,
+              quantity: Math.max(
+                1,
+                Number(item.quantity) || 1
+              ),
             }
           : item
       )
@@ -216,11 +241,9 @@ function NewSale() {
       Math.floor(newQuantity)
     );
 
-    if (selectedProduct) {
-      newQuantity = Math.min(
-        selectedProduct.stock,
-        newQuantity
-      );
+    if (selectedProduct && newQuantity > selectedProduct.stock) {
+      alert(`Only ${selectedProduct.stock} units are available.`);
+      newQuantity = selectedProduct.stock;
     }
 
     setItems((currentItems) =>
@@ -329,8 +352,22 @@ function NewSale() {
     );
 
     if (hasInvalidQuantity) {
+      const overItem = items
+        .map((item) => ({
+          item,
+          product: products.find(
+            (p) => String(p.id) === String(item.productId)
+          ),
+        }))
+        .find(
+          ({ item, product }) =>
+            product && item.quantity > product.stock
+        );
+
       alert(
-        "Please check the quantity and available stock."
+        overItem
+          ? `Only ${overItem.product.stock} units are available for ${overItem.product.name}.`
+          : "Please check the quantity and available stock."
       );
       return;
     }
@@ -585,6 +622,10 @@ function NewSale() {
                               )
                             }
                             aria-label="Quantity"
+                            disabled={
+                              !selectedProduct ||
+                              selectedProduct.stock <= 0
+                            }
                           />
                         </td>
 
@@ -830,7 +871,7 @@ function NewSale() {
                     Card
                   </option>
 
-                  <option value="Bank Transfer">
+                  <option value="BankTransfer">
                     Bank Transfer
                   </option>
 
