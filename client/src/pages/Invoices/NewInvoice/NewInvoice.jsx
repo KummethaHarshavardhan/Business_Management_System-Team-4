@@ -15,15 +15,15 @@ function NewInvoice() {
   const [paymentStatus, setPaymentStatus] = useState('Paid');
 
   const [discountType, setDiscountType] = useState('percentage');
-  const [discountValue, setDiscountValue] = useState(0);
-  const [taxRate, setTaxRate] = useState(18);
+  const [discountValue, setDiscountValue] = useState('');
+  const [taxRate, setTaxRate] = useState('');
 
   const [items, setItems] = useState([
     {
       id: Date.now(),
       productId: '',
-      quantity: 1,
-      price: 0,
+      quantity: '',
+      price: '',
     },
   ]);
 
@@ -49,6 +49,14 @@ function NewInvoice() {
   }, [items]);
 
   const discountAmount = useMemo(() => {
+    if (
+      discountValue === '' ||
+      discountValue === null ||
+      discountValue === undefined
+    ) {
+      return 0;
+    }
+
     const value = Math.max(
       0,
       Number(discountValue || 0)
@@ -73,6 +81,14 @@ function NewInvoice() {
   );
 
   const taxAmount = useMemo(() => {
+    if (
+      taxRate === '' ||
+      taxRate === null ||
+      taxRate === undefined
+    ) {
+      return 0;
+    }
+
     const rate = Math.max(
       0,
       Number(taxRate || 0)
@@ -89,8 +105,8 @@ function NewInvoice() {
       {
         id: Date.now() + Math.random(),
         productId: '',
-        quantity: 1,
-        price: 0,
+        quantity: '',
+        price: '',
       },
     ]);
   };
@@ -119,7 +135,7 @@ function NewInvoice() {
               productId,
               price: selectedProduct
                 ? selectedProduct.price
-                : 0,
+                : '',
             }
           : item
       )
@@ -127,7 +143,26 @@ function NewInvoice() {
   };
 
   const updateQuantity = (id, quantity) => {
+    if (quantity === '') {
+      setItems((previousItems) =>
+        previousItems.map((item) =>
+          item.id === id
+            ? {
+                ...item,
+                quantity: '',
+              }
+            : item
+        )
+      );
+
+      return;
+    }
+
     const numericQuantity = Number(quantity);
+
+    if (Number.isNaN(numericQuantity)) {
+      return;
+    }
 
     setItems((previousItems) =>
       previousItems.map((item) =>
@@ -137,7 +172,7 @@ function NewInvoice() {
               quantity:
                 numericQuantity >= 1
                   ? numericQuantity
-                  : 1,
+                  : '',
             }
           : item
       )
@@ -145,7 +180,26 @@ function NewInvoice() {
   };
 
   const updatePrice = (id, price) => {
+    if (price === '') {
+      setItems((previousItems) =>
+        previousItems.map((item) =>
+          item.id === id
+            ? {
+                ...item,
+                price: '',
+              }
+            : item
+        )
+      );
+
+      return;
+    }
+
     const numericPrice = Number(price);
+
+    if (Number.isNaN(numericPrice)) {
+      return;
+    }
 
     setItems((previousItems) =>
       previousItems.map((item) =>
@@ -155,7 +209,7 @@ function NewInvoice() {
               price:
                 numericPrice >= 0
                   ? numericPrice
-                  : 0,
+                  : '',
             }
           : item
       )
@@ -175,6 +229,32 @@ function NewInvoice() {
     if (hasInvalidProduct) {
       alert(
         'Please select a product for every invoice item.'
+      );
+      return;
+    }
+
+    const hasInvalidQuantity = items.some(
+      (item) =>
+        item.quantity === '' ||
+        Number(item.quantity) <= 0
+    );
+
+    if (hasInvalidQuantity) {
+      alert(
+        'Please enter a valid quantity for every invoice item.'
+      );
+      return;
+    }
+
+    const hasInvalidPrice = items.some(
+      (item) =>
+        item.price === '' ||
+        Number(item.price) < 0
+    );
+
+    if (hasInvalidPrice) {
+      alert(
+        'Please enter a valid price for every invoice item.'
       );
       return;
     }
@@ -211,6 +291,16 @@ function NewInvoice() {
     );
   };
 
+  const discountSummaryLabel =
+    discountType === 'percentage'
+      ? `Discount (${discountValue !== '' ? `${discountValue}%` : '—%'})`
+      : 'Discount (₹)';
+
+  const taxSummaryLabel =
+    taxRate !== ''
+      ? `Tax (${taxRate}%)`
+      : 'Tax (—%)';
+
   return (
     <div className="new-invoice-page">
 
@@ -231,6 +321,7 @@ function NewInvoice() {
         <button
           className="back-btn"
           onClick={() => navigate('/invoices')}
+          type="button"
         >
           ← Back to Invoices
         </button>
@@ -410,6 +501,7 @@ function NewInvoice() {
                               e.target.value
                             )
                           }
+                          placeholder=""
                         />
 
                       </td>
@@ -426,6 +518,7 @@ function NewInvoice() {
                               e.target.value
                             )
                           }
+                          placeholder=""
                         />
 
                       </td>
@@ -434,8 +527,8 @@ function NewInvoice() {
 
                         <strong>
                           {formatCurrency(
-                            Number(item.quantity) *
-                              Number(item.price)
+                            Number(item.quantity || 0) *
+                              Number(item.price || 0)
                           )}
                         </strong>
 
@@ -537,6 +630,7 @@ function NewInvoice() {
                       e.target.value
                     )
                   }
+                  placeholder=""
                 />
 
               </div>
@@ -556,6 +650,7 @@ function NewInvoice() {
                       e.target.value
                     )
                   }
+                  placeholder=""
                 />
 
               </div>
@@ -642,8 +737,6 @@ function NewInvoice() {
 
         {/* =========================
             INVOICE SUMMARY
-            NOW COMES AFTER PAYMENT
-            ON MOBILE
         ========================= */}
 
         <div className="invoice-summary-panel">
@@ -715,14 +808,22 @@ function NewInvoice() {
 
                   <strong>
                     {formatCurrency(
-                      Number(item.quantity) *
-                        Number(item.price)
+                      Number(item.quantity || 0) *
+                        Number(item.price || 0)
                     )}
                   </strong>
 
                 </div>
               );
             })}
+
+            {items.every(
+              (item) => !item.productId
+            ) && (
+              <div className="summary-empty">
+                No products added yet
+              </div>
+            )}
 
           </div>
 
@@ -743,7 +844,7 @@ function NewInvoice() {
             <div>
 
               <span>
-                Discount
+                {discountSummaryLabel}
               </span>
 
               <strong className="discount-value">
@@ -755,7 +856,7 @@ function NewInvoice() {
             <div>
 
               <span>
-                Tax ({taxRate}%)
+                {taxSummaryLabel}
               </span>
 
               <strong>
@@ -808,7 +909,6 @@ function NewInvoice() {
 
           {/* =========================
               ACTION BUTTONS
-              BELOW SUMMARY
           ========================= */}
 
           <div className="invoice-actions">

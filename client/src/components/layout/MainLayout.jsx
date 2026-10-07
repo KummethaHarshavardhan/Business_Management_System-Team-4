@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { NavLink, Outlet } from "react-router-dom";
 
 import {
@@ -7,6 +7,7 @@ import {
   FiFileText,
   FiCornerUpLeft,
   FiMenu,
+  FiX,
 } from "react-icons/fi";
 
 import "./MainLayout.css";
@@ -24,30 +25,45 @@ function MainLayout() {
     }
   };
 
+  /* =====================================================
+     CLOSE MOBILE MENU WITH ESC KEY
+     ===================================================== */
+
+  useEffect(() => {
+    const handleEscapeKey = (event) => {
+      if (event.key === "Escape" && isMobileMenuOpen) {
+        closeMobileMenu();
+      }
+    };
+
+    document.addEventListener("keydown", handleEscapeKey);
+
+    return () => {
+      document.removeEventListener(
+        "keydown",
+        handleEscapeKey
+      );
+    };
+  }, [isMobileMenuOpen]);
+
   return (
     <div className="app-layout">
 
       {/* =====================================================
           MOBILE HAMBURGER BUTTON
-          Always visible on mobile
+          Visible only when mobile menu is CLOSED
           ===================================================== */}
 
-      <button
-        type="button"
-        className={`mobile-hamburger ${
-          isMobileMenuOpen ? "mobile-hamburger-open" : ""
-        }`}
-        onClick={() =>
-          setIsMobileMenuOpen((current) => !current)
-        }
-        aria-label={
-          isMobileMenuOpen
-            ? "Close navigation menu"
-            : "Open navigation menu"
-        }
-      >
-        <FiMenu />
-      </button>
+      {!isMobileMenuOpen && (
+        <button
+          type="button"
+          className="mobile-hamburger"
+          onClick={() => setIsMobileMenuOpen(true)}
+          aria-label="Open navigation menu"
+        >
+          <FiMenu />
+        </button>
+      )}
 
 
       {/* =====================================================
@@ -90,6 +106,23 @@ function MainLayout() {
               Billing System
             </span>
           </div>
+
+
+          {/* =================================================
+              MOBILE CLOSE BUTTON
+              X appears on RIGHT SIDE of sidebar header
+              ================================================= */}
+
+          {isMobileMenuOpen && (
+            <button
+              type="button"
+              className="mobile-sidebar-close"
+              onClick={closeMobileMenu}
+              aria-label="Close navigation menu"
+            >
+              <FiX />
+            </button>
+          )}
 
         </div>
 

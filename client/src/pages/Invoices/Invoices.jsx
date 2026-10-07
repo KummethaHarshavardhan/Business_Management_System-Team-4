@@ -312,15 +312,6 @@ function Invoices() {
 
           </select>
 
-
-          <button
-            type="button"
-            className="invoice-filter-btn"
-            onClick={resetFilters}
-          >
-            Reset
-          </button>
-
         </div>
 
 

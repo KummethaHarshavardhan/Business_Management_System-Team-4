@@ -382,6 +382,17 @@
   white-space: nowrap;
 }
 
+/* EMPTY SUMMARY */
+
+.summary-empty {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 80px;
+  color: #94a3b8;
+  font-size: 13px;
+}
+
 /* =========================================================
    CALCULATIONS
 ========================================================= */
@@ -471,7 +482,6 @@
 
 /* =========================================================
    ACTION BUTTONS
-   NOW INSIDE SUMMARY
 ========================================================= */
 
 .invoice-actions {
@@ -523,18 +533,6 @@
   .invoice-form-layout {
     grid-template-columns: 1fr;
   }
-
-  /*
-    IMPORTANT:
-    Do NOT use order:-1 here.
-
-    This keeps:
-    Customer
-    Invoice Items
-    Discount & Tax
-    Payment Details
-    Invoice Summary
-  */
 
   .invoice-summary-panel {
     position: static;
