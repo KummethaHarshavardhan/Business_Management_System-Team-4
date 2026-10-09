@@ -4,6 +4,7 @@ import "./NewReturn.css";
 
 import { getInvoices } from "../../../services/invoice";
 import { getProducts } from "../../../services/product";
+import { getSales } from "../../../services/sales";
 import { createReturn } from "../../../services/return";
 
 function NewReturn() {
@@ -26,6 +27,7 @@ function NewReturn() {
 
   const [invoiceData, setInvoiceData] = useState([]);
   const [productsData, setProductsData] = useState([]);
+  const [salesData, setSalesData] = useState([]);
 
   const [invoiceId, setInvoiceId] = useState("");
   const [returnDate, setReturnDate] = useState("");
@@ -40,9 +42,10 @@ function NewReturn() {
     useEffect(() => {
     const fetchData = async () => {
       try {
-        const [invoiceResponse, productResponse] =
+        const [invoiceResponse, salesResponse, productResponse] =
           await Promise.all([
             getInvoices(),
+            getSales(),
             getProducts(),
           ]);
 
@@ -50,11 +53,16 @@ function NewReturn() {
           ? invoiceResponse
           : invoiceResponse.data || [];
 
+        const salesList = Array.isArray(salesResponse)
+          ? salesResponse
+          : salesResponse.data || [];
+
         const productList = Array.isArray(productResponse)
           ? productResponse
           : productResponse.data || [];
 
         setInvoiceData(invoiceList);
+        setSalesData(salesList);
         setProductsData(productList);
       } catch (error) {
         console.error("New Return API Error:", error);
@@ -65,33 +73,40 @@ function NewReturn() {
   }, []);
 
   const selectedInvoice = useMemo(() => {
-    return invoiceData.find(
-      (invoice) => (invoice.invoiceId || invoice._id || invoice.id) === invoiceId
+    return invoiceData.find((invoice) =>
+      String(
+        invoice.invoiceNumber ||
+        invoice.invoiceId ||
+        invoice._id ||
+        invoice.id ||
+        ""
+      ) === String(invoiceId)
     );
-  }, [invoiceData,invoiceId]);
+  }, [invoiceData, invoiceId]);
 
-    const products = useMemo(() => {
-    if (!selectedInvoice) {
+  const selectedSale = useMemo(() => {
+    const saleId = selectedInvoice?.sale?._id || selectedInvoice?.sale || "";
+
+    if (!saleId) {
+      return null;
+    }
+
+    return (
+      salesData.find((sale) => String(sale._id) === String(saleId)) ||
+      null
+    );
+  }, [selectedInvoice, salesData]);
+
+  const products = useMemo(() => {
+    if (!selectedSale) {
       return [];
     }
 
-    const invoiceItems =
-      selectedInvoice.items ||
-      selectedInvoice.products ||
-      [];
-
-    return invoiceItems.map((item) => {
-      const productId =
-        item.product?._id ||
-        item.product?.id ||
-        item.product ||
-        item.productId ||
-        item._id ||
-        item.id;
+    return (selectedSale.items || []).map((item) => {
+      const productId = item.product?._id || item.product;
 
       const productDetails = productsData.find(
-        (product) =>
-          (product._id || product.id) === productId
+        (product) => String(product._id || product.id) === String(productId)
       );
 
       return {
@@ -110,25 +125,18 @@ function NewReturn() {
           productDetails?.sku ||
           productDetails?.productCode ||
           "—",
-        soldQty:
-          Number(
-            item.quantity ||
-            item.soldQty ||
-            item.qty ||
-            0
-          ),
-        unitPrice:
-          Number(
-            item.price ||
+        soldQty: Number(item.quantity || 0),
+        unitPrice: Number(
+          item.price ||
             item.unitPrice ||
             item.sellingPrice ||
             productDetails?.sellingPrice ||
             productDetails?.price ||
             0
-          ),
+        ),
       };
     });
-  }, [selectedInvoice, productsData]);
+  }, [selectedSale, productsData]);
 
   const totalItems = Object.values(returnQuantities).reduce(
     (total, quantity) => {
@@ -281,57 +289,35 @@ function NewReturn() {
     setIsSubmitting(true);
     setSuccessMessage("");
 
-    const selectedInvoiceId =
-      selectedInvoice.invoiceId ||
-      selectedInvoice._id ||
-      selectedInvoice.id;
+    const selectedSaleId = selectedSale?._id;
 
-    const selectedSaleId =
-      selectedInvoice.saleId ||
-      selectedInvoice.sale ||
-      selectedInvoice.sale?._id ||
-      "";
-
-    const returnItems = products
-      .filter(
-        (product) =>
-          Number(
-            returnQuantities[product.id] || 0
-          ) > 0
-      )
-      .map((product) => ({
-        product: product.id,
-        quantity: Number(
-          returnQuantities[product.id]
-        ),
-        price: Number(product.unitPrice || 0),
-        total:
-          Number(
-            returnQuantities[product.id]
-          ) *
-          Number(product.unitPrice || 0),
+    if (!selectedSaleId) {
+      setErrors((current) => ({
+        ...current,
+        invoiceId: "The selected invoice is not linked to a valid sale.",
       }));
+      setIsSubmitting(false);
+      return;
+    }
 
-    const returnData = {
-      invoiceId: selectedInvoiceId,
-      saleId: selectedSaleId,
-      customer:
-        selectedInvoice.customerId ||
-        selectedInvoice.customer?._id ||
-        selectedInvoice.customer?.id ||
-        selectedInvoice.customer,
-      items: returnItems,
-      amount: totalRefundAmount,
-      reason: returnReason,
-      refundMethod,
-      returnDate:
-        returnDate ||
-        new Date().toISOString().split("T")[0],
-      notes,
-    };
+    const selectedProducts = products.filter(
+      (product) => Number(returnQuantities[product.id] || 0) > 0
+    );
 
     try {
-      await createReturn(returnData);
+      // The Return model stores one product per document, so create one
+      // backend return record for each selected product. Only real MongoDB
+      // Sale/Product IDs are sent; returned stock is never changed here.
+      await Promise.all(
+        selectedProducts.map((product) =>
+          createReturn({
+            saleId: selectedSaleId,
+            productId: product.id,
+            quantityReturned: Number(returnQuantities[product.id]),
+            reason: returnReason,
+          })
+        )
+      );
 
       setSuccessMessage(
         "Return created successfully."
@@ -478,6 +464,7 @@ function NewReturn() {
                   {invoiceData.map((invoice) => {
 
                     const currentInvoiceId =
+                      invoice.invoiceNumber ||
                       invoice.invoiceId ||
                       invoice._id ||
                       invoice.id;
@@ -515,7 +502,7 @@ function NewReturn() {
                   </span>
 
                   <strong>
-                    {selectedInvoice?.customer || "—"}
+                    {selectedInvoice?.customerDetails?.name || selectedInvoice?.customer?.name || selectedInvoice?.customer || "—"}
                   </strong>
 
                 </div>
@@ -527,7 +514,7 @@ function NewReturn() {
                   </span>
 
                   <strong>
-                    {selectedInvoice?.phone || "—"}
+                    {selectedInvoice?.customerDetails?.phone || selectedInvoice?.customer?.phone || selectedInvoice?.phone || "—"}
                   </strong>
 
                 </div>
@@ -539,7 +526,7 @@ function NewReturn() {
                   </span>
 
                   <strong>
-                    {selectedInvoice?.invoiceDate || "—"}
+                    {selectedInvoice?.invoiceDate ? new Date(selectedInvoice.invoiceDate).toLocaleDateString("en-IN") : "—"}
                   </strong>
 
                 </div>
@@ -1004,7 +991,7 @@ function NewReturn() {
               </span>
 
               <strong>
-                Pending
+                Completed
               </strong>
 
             </div>
@@ -1030,7 +1017,7 @@ function NewReturn() {
               </span>
 
               <strong>
-                {selectedInvoice?.customer || "—"}
+                {selectedInvoice?.customerDetails?.name || selectedInvoice?.customer?.name || selectedInvoice?.customer || "—"}
               </strong>
 
             </div>

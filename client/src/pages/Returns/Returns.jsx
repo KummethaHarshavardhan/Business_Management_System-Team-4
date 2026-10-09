@@ -145,29 +145,18 @@ function Return() {
 
   const totalReturns = returns.length;
 
-  const pendingReturns = returns.filter(
-    (item) => item.status === "Pending"
-  ).length;
-
-  const approvedReturns = returns.filter(
-    (item) => item.status === "Approved"
-  ).length;
-
-  const refundedReturns = returns.filter(
-    (item) => item.status === "Refunded"
+  const completedReturns = returns.filter(
+    (item) => item.status === "Completed"
   ).length;
 
   const rejectedReturns = returns.filter(
     (item) => item.status === "Rejected"
   ).length;
 
-  const totalRefundAmount = returns
-    .filter((item) => item.status === "Refunded")
-    .reduce(
-      (sum, item) =>
-        sum + Number(item.amount || 0),
-      0
-    );
+  const totalReturnValue = returns.reduce(
+    (sum, item) => sum + Number(item.amount || 0),
+    0
+  );
 
   const formatCurrency = (amount) => {
     return `₹${Number(amount || 0).toLocaleString(
@@ -200,87 +189,13 @@ function Return() {
     setStatus("All Status");
   };
 
-  const handleApproveReturn = (returnId) => {
-    setReturns((currentReturns) =>
-      currentReturns.map((item) =>
-        item.id === returnId
-          ? {
-              ...item,
-              status: "Approved",
-            }
-          : item
-      )
-    );
-
-    setSelectedReturn((current) =>
-      current
-        ? {
-            ...current,
-            status: "Approved",
-          }
-        : null
-    );
-  };
-
-  const handleRejectReturn = (returnId) => {
-    setReturns((currentReturns) =>
-      currentReturns.map((item) =>
-        item.id === returnId
-          ? {
-              ...item,
-              status: "Rejected",
-            }
-          : item
-      )
-    );
-
-    setSelectedReturn((current) =>
-      current
-        ? {
-            ...current,
-            status: "Rejected",
-          }
-        : null
-    );
-  };
-
-  const handleProcessRefund = (returnId) => {
-    setReturns((currentReturns) =>
-      currentReturns.map((item) =>
-        item.id === returnId
-          ? {
-              ...item,
-              status: "Refunded",
-            }
-          : item
-      )
-    );
-
-    setSelectedReturn((current) =>
-      current
-        ? {
-            ...current,
-            status: "Refunded",
-          }
-        : null
-    );
-  };
-
-  const handleViewInvoice = () => {
-    if (!selectedReturn) return;
-
-    closeReturnDetails();
-
-    navigate("/invoices");
-  };
-
   return (
     <div className="returns-page">
       <div className="returns-header">
         <div>
           <h1>Returns</h1>
           <p>
-            Manage product returns, approvals and refunds.
+            Manage product returns and review return records.
           </p>
         </div>
         <button
@@ -315,10 +230,10 @@ function Return() {
           </div>
 
           <div>
-            <span>Pending Returns</span>
+            <span>Completed Returns</span>
 
             <strong>
-              {pendingReturns}
+              {completedReturns}
             </strong>
           </div>
 
@@ -332,10 +247,10 @@ function Return() {
           </div>
 
           <div>
-            <span>Approved</span>
+            <span>Rejected Returns</span>
 
             <strong>
-              {approvedReturns}
+              {rejectedReturns}
             </strong>
           </div>
 
@@ -349,10 +264,10 @@ function Return() {
           </div>
 
           <div>
-            <span>Refunded Amount</span>
+            <span>Total Return Value</span>
 
             <strong>
-              {formatCurrency(totalRefundAmount)}
+              {formatCurrency(totalReturnValue)}
             </strong>
           </div>
 
@@ -362,11 +277,11 @@ function Return() {
       <div className="return-summary-strip">
         <div>
           <span>
-            Refunded Returns
+            Completed Returns
           </span>
 
           <strong>
-            {refundedReturns}
+            {completedReturns}
           </strong>
 
         </div>
@@ -385,10 +300,10 @@ function Return() {
         <div>
 
           <span>
-            Total Refund Value
+            Total Return Value
           </span>
           <strong>
-            {formatCurrency(totalRefundAmount)}
+            {formatCurrency(totalReturnValue)}
           </strong>
 
         </div>
@@ -424,20 +339,12 @@ function Return() {
               All Status
             </option>
 
-            <option value="Pending">
-              Pending
-            </option>
-
-            <option value="Approved">
-              Approved
+            <option value="Completed">
+              Completed
             </option>
 
             <option value="Rejected">
               Rejected
-            </option>
-
-            <option value="Refunded">
-              Refunded
             </option>
 
           </select>
@@ -843,20 +750,7 @@ function Return() {
               <div className="refund-detail-row">
 
                 <span>
-                  Refund Method
-                </span>
-
-                <strong>
-                  {selectedReturn.refundMethod}
-                </strong>
-
-              </div>
-
-
-              <div className="refund-detail-row">
-
-                <span>
-                  Refund Amount
+                  Return Value
                 </span>
 
                 <strong className="refund-amount">
@@ -904,67 +798,6 @@ function Return() {
               >
                 Close
               </button>
-
-              {selectedReturn.status === "Pending" && (
-
-                <>
-
-                  <button
-                    type="button"
-                    className="return-reject-btn"
-                    onClick={() =>
-                      handleRejectReturn(
-                        selectedReturn.id
-                      )
-                    }
-                  >
-                    Reject Return
-                  </button>
-
-
-                  <button
-                    type="button"
-                    className="return-approve-btn"
-                    onClick={() =>
-                      handleApproveReturn(
-                        selectedReturn.id
-                      )
-                    }
-                  >
-                    Approve Return
-                  </button>
-
-                </>
-
-              )}
-
-              {selectedReturn.status === "Approved" && (
-
-                <button
-                  type="button"
-                  className="return-refund-btn"
-                  onClick={() =>
-                    handleProcessRefund(
-                      selectedReturn.id
-                    )
-                  }
-                >
-                  Process Refund
-                </button>
-
-              )}
-
-              {selectedReturn.status === "Refunded" && (
-
-                <button
-                  type="button"
-                  className="return-invoice-btn"
-                  onClick={handleViewInvoice}
-                >
-                  View Invoice
-                </button>
-
-              )}
 
             </div>
 
