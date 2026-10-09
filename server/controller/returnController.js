@@ -1,7 +1,7 @@
 import mongoose from 'mongoose'
 import Sale from '../model/sale.js'
 import Return from '../model/return.js'
-import { increaseStock } from '../services/stockService.js'
+import { getProduct } from '../services/stockService.js'
 
 
 export const createReturn = async (req, res) => {
@@ -20,6 +20,12 @@ export const createReturn = async (req, res) => {
       return res.status(404).json({ message: 'Sale not found' });
     }
 
+    try {
+      await getProduct(productId, req.headers.authorization);
+    } catch (error) {
+      return res.status(404).json({ message: 'Product not found' });
+    }
+
     const soldItem = sale.items.find((item) => String(item.product) === String(productId));
     if (!soldItem) {
       return res.status(400).json({ message: 'This product is not part of the given sale' });
@@ -35,7 +41,10 @@ export const createReturn = async (req, res) => {
         message: `Cannot return ${quantityReturned}. Only ${remaining} unit(s) can be returned.`,
       });
     }
-    await increaseStock(productId, quantityReturned, req.headers.authorization);
+    // Customer returns are NOT automatically restocked.
+    // Returned items may be damaged, defective, opened, used, or otherwise
+    // unsuitable for resale. Restocking must be handled by a separate
+    // explicit inspection/restocking workflow.
     const newReturn = await Return.create({
       sale: saleId,
       product: productId,
@@ -76,8 +85,6 @@ export const getReturns = async (req, res) => {
   }
 };
 
-// GET /api/returns/:id
-// Gets one return by id.
 export const getReturnById = async (req, res) => {
   try {
     const { id } = req.params;

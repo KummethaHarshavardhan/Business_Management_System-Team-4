@@ -726,3 +726,106 @@
     font-size: 12px;
   }
 }
+/* Sale-ID based invoice generation */
+.sale-invoice-card {
+  max-width: 1100px;
+}
+
+.sale-invoice-selection {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: end;
+  gap: 16px;
+}
+
+.sale-invoice-selection .form-group {
+  min-width: 0;
+}
+
+.generate-sale-invoice-btn {
+  min-height: 44px;
+  white-space: nowrap;
+}
+
+.generate-sale-invoice-btn:disabled,
+.sale-invoice-refresh-btn:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+
+.selected-sale-summary {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+  gap: 14px;
+  margin-top: 22px;
+  padding: 18px;
+  border: 1px solid #e5e7eb;
+  border-radius: 10px;
+  background: #f8fafc;
+}
+
+.selected-sale-summary div {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  min-width: 0;
+}
+
+.selected-sale-summary span {
+  color: #64748b;
+  font-size: 12px;
+}
+
+.selected-sale-summary strong {
+  color: #1e293b;
+  font-size: 13px;
+  overflow-wrap: anywhere;
+}
+
+.sale-invoice-message,
+.sale-invoice-empty {
+  margin-top: 18px;
+  padding: 13px 15px;
+  border-radius: 9px;
+  font-size: 14px;
+  line-height: 1.5;
+}
+
+.sale-invoice-message.error {
+  color: #991b1b;
+  background: #fef2f2;
+  border: 1px solid #fecaca;
+}
+
+.sale-invoice-message.success {
+  color: #166534;
+  background: #f0fdf4;
+  border: 1px solid #bbf7d0;
+}
+
+.sale-invoice-empty {
+  color: #475569;
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+}
+
+.sale-invoice-refresh-btn {
+  margin-top: 18px;
+  padding: 10px 14px;
+  border: 1px solid #d8def0;
+  border-radius: 8px;
+  background: #fff;
+  color: #4f46e5;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+@media (max-width: 640px) {
+  .sale-invoice-selection {
+    grid-template-columns: 1fr;
+  }
+
+  .generate-sale-invoice-btn {
+    width: 100%;
+  }
+}
