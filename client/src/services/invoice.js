@@ -34,3 +34,17 @@ export const getInvoiceById = async (id) => {
     throw toError(error, "Failed to fetch invoice");
   }
 };
+
+
+export const updateInvoicePaymentStatus = async (id, paymentStatus, paidAmount) => {
+  try {
+    const response = await axios.patch(
+      `${API_URL}/${id}/payment-status`,
+      { paymentStatus, paidAmount },
+      { headers: getAuthHeaders() }
+    );
+    return response.data;
+  } catch (error) {
+    throw toError(error, 'Failed to update invoice payment status');
+  }
+};

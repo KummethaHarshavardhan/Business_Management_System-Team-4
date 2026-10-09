@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import "./Invoices.css";
-import { getInvoices } from "../../services/invoice";
+import { getInvoices, updateInvoicePaymentStatus } from "../../services/invoice";
 
 function Invoices() {
   const navigate = useNavigate();
@@ -11,6 +11,10 @@ function Invoices() {
   const [status, setStatus] = useState("All");
   const [selectedInvoice, setSelectedInvoice] =
     useState(null);
+  const [nextPaymentStatus, setNextPaymentStatus] = useState("Pending");
+  const [paidAmountInput, setPaidAmountInput] = useState("0");
+  const [paymentSaving, setPaymentSaving] = useState(false);
+  const [paymentMessage, setPaymentMessage] = useState("");
   useEffect(() => {
     const fetchInvoices = async () => {
       try {
@@ -127,8 +131,47 @@ function Invoices() {
 
   const handleViewInvoice = (invoice) => {
     setSelectedInvoice(invoice);
+    setNextPaymentStatus(invoice.paymentStatus || "Pending");
+    setPaidAmountInput(String(invoice.paidAmount ?? (invoice.paymentStatus === "Paid" ? invoice.grandTotal ?? invoice.amount ?? 0 : 0)));
+    setPaymentMessage("");
 
     document.body.style.overflow = "hidden";
+  };
+
+  const handleSavePaymentStatus = async () => {
+    if (!selectedInvoice) return;
+    setPaymentSaving(true);
+    setPaymentMessage("");
+    try {
+      const total = Number(selectedInvoice.grandTotal ?? selectedInvoice.amount ?? 0);
+      const paidAmount = nextPaymentStatus === "Paid"
+        ? total
+        : nextPaymentStatus === "Pending"
+          ? 0
+          : Number(paidAmountInput);
+      const response = await updateInvoicePaymentStatus(
+        selectedInvoice._id,
+        nextPaymentStatus,
+        paidAmount
+      );
+      const updated = response.invoice;
+      const normalized = {
+        ...updated,
+        id: updated.invoiceNumber || updated._id || updated.id,
+        customer: updated.customerDetails?.name || selectedInvoice.customer || "",
+        phone: updated.customerDetails?.phone || selectedInvoice.phone || "",
+        date: updated.invoiceDate ? new Date(updated.invoiceDate).toLocaleDateString("en-IN") : selectedInvoice.date,
+        amount: Number(updated.grandTotal ?? updated.amount ?? 0),
+      };
+      setInvoices((current) => current.map((item) => String(item._id) === String(updated._id) ? normalized : item));
+      setSelectedInvoice(normalized);
+      setPaidAmountInput(String(normalized.paidAmount ?? paidAmount));
+      setPaymentMessage("Payment status saved successfully.");
+    } catch (error) {
+      setPaymentMessage(error.message || "Could not update payment status.");
+    } finally {
+      setPaymentSaving(false);
+    }
   };
 
   const closeInvoiceDetails = () => {
@@ -434,11 +477,12 @@ function Invoices() {
                       <td>
 
                         <span className="item-badge">
-                          {Array.isArray(
-                            invoice.items
-                          )
-                            ? invoice.items.length
-                            : invoice.items || 0}
+                          {Array.isArray(invoice.items)
+                            ? invoice.items.reduce(
+                                (total, item) => total + Number(item.quantity || 0),
+                                0
+                              )
+                            : Number(invoice.items || 0)}
                         </span>
 
                       </td>
@@ -665,6 +709,41 @@ function Invoices() {
                 >
                   {selectedInvoice.paymentStatus}
                 </span>
+                <div className="payment-status-editor" style={{ marginTop: 10 }}>
+                  <label htmlFor="invoice-payment-status" style={{ display: "block", marginBottom: 6 }}>Change payment status</label>
+                  <select
+                    id="invoice-payment-status"
+                    value={nextPaymentStatus}
+                    onChange={(e) => setNextPaymentStatus(e.target.value)}
+                    style={{ width: "100%", padding: "9px 10px", border: "1px solid #d8deea", borderRadius: 8, background: "white" }}
+                  >
+                    <option value="Pending">Pending</option>
+                    <option value="Partial">Partial</option>
+                    <option value="Paid">Paid</option>
+                  </select>
+                  {nextPaymentStatus === "Partial" && (
+                    <div style={{ marginTop: 8 }}>
+                      <label htmlFor="invoice-paid-amount" style={{ display: "block", marginBottom: 6 }}>Amount received (₹)</label>
+                      <input
+                        id="invoice-paid-amount"
+                        type="number"
+                        min="0.01"
+                        max={Math.max(0, Number(selectedInvoice.grandTotal ?? selectedInvoice.amount ?? 0) - 0.01)}
+                        step="0.01"
+                        value={paidAmountInput}
+                        onChange={(e) => setPaidAmountInput(e.target.value)}
+                        style={{ width: "100%", padding: "9px 10px", border: "1px solid #d8deea", borderRadius: 8, boxSizing: "border-box" }}
+                      />
+                    </div>
+                  )}
+                  <div style={{ marginTop: 8, fontSize: 13, color: "#64748b" }}>
+                    Received: {formatCurrency(nextPaymentStatus === "Paid" ? (selectedInvoice.grandTotal ?? selectedInvoice.amount ?? 0) : nextPaymentStatus === "Pending" ? 0 : paidAmountInput)} · Balance: {formatCurrency(Math.max(0, Number(selectedInvoice.grandTotal ?? selectedInvoice.amount ?? 0) - (nextPaymentStatus === "Paid" ? Number(selectedInvoice.grandTotal ?? selectedInvoice.amount ?? 0) : nextPaymentStatus === "Pending" ? 0 : Number(paidAmountInput || 0))))}
+                  </div>
+                  <button type="button" onClick={handleSavePaymentStatus} disabled={paymentSaving} style={{ marginTop: 10, width: "100%", padding: "9px 12px", border: 0, borderRadius: 8, background: paymentSaving ? "#a5b4fc" : "#4f46e5", color: "white", fontWeight: 600, cursor: paymentSaving ? "wait" : "pointer" }}>
+                    {paymentSaving ? "Saving..." : "Save Payment Status"}
+                  </button>
+                  {paymentMessage && <p role="status" style={{ marginTop: 8, fontSize: 13, color: paymentMessage.includes("successfully") ? "#047857" : "#b91c1c" }}>{paymentMessage}</p>}
+                </div>
 
               </div>
 
@@ -684,11 +763,12 @@ function Invoices() {
                 </h3>
 
                 <span>
-                  {Array.isArray(
-                    selectedInvoice.items
-                  )
-                    ? selectedInvoice.items.length
-                    : selectedInvoice.items || 0}{" "}
+                  {Array.isArray(selectedInvoice.items)
+                    ? selectedInvoice.items.reduce(
+                        (total, item) => total + Number(item.quantity || 0),
+                        0
+                      )
+                    : Number(selectedInvoice.items || 0)}{" "}
                   Items
                 </span>
 

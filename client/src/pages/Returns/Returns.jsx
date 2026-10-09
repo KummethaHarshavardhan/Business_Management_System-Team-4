@@ -44,39 +44,48 @@ function Return() {
           customersList.map((customer) => [String(customer._id), customer])
         );
 
-        setReturns(
-          returnData.map((item) => {
-            const saleId = String(item.sale?._id || item.sale || "");
-            const productId = String(item.product?._id || item.product || "");
-            const sale = saleMap[saleId];
-            const invoice = invoiceMap[saleId];
-            const customer = sale ? customerMap[String(sale.customer)] : null;
-            const soldItem = sale?.items?.find(
-              (saleItem) => String(saleItem.product) === productId
-            );
-            const quantity = Number(item.quantityReturned || 0);
+        const mappedReturns = returnData.map((item) => {
+          const saleId = String(item.sale?._id || item.sale || "");
+          const productId = String(item.product?._id || item.product || "");
+          const sale = saleMap[saleId];
+          const invoice = invoiceMap[saleId];
+          const customer = sale ? customerMap[String(sale.customer)] : null;
+          const soldItem = sale?.items?.find(
+            (saleItem) => String(saleItem.product?._id || saleItem.product) === productId
+          );
+          const quantity = Number(item.quantityReturned || 0);
 
-            return {
-              ...item,
-              id: item._id
-                ? `RET-${String(item._id).slice(-6).toUpperCase()}`
-                : item.id,
-              invoiceId: invoice?.invoiceNumber || "",
-              saleId: saleId
-                ? `SALE-${saleId.slice(-6).toUpperCase()}`
-                : "",
-              customer:
-                invoice?.customerDetails?.name || customer?.name || "",
-              phone:
-                invoice?.customerDetails?.phone || customer?.phone || "",
-              date: item.createdAt
-                ? new Date(item.createdAt).toLocaleDateString("en-IN")
-                : "",
-              items: quantity,
-              amount: Number(soldItem?.price || 0) * quantity,
-            };
-          })
-        );
+          return {
+            ...item,
+            id: item._id ? `RET-${String(item._id).slice(-6).toUpperCase()}` : item.id,
+            invoiceId: invoice?.invoiceNumber || "",
+            saleId: saleId ? `SALE-${saleId.slice(-6).toUpperCase()}` : "",
+            customer: invoice?.customerDetails?.name || customer?.name || "",
+            phone: invoice?.customerDetails?.phone || customer?.phone || "",
+            date: item.createdAt ? new Date(item.createdAt).toLocaleDateString("en-IN") : "",
+            items: quantity,
+            amount: Number(soldItem?.price || 0) * quantity,
+          };
+        });
+
+        const returnBatches = new Map();
+        mappedReturns.forEach((item) => {
+          // Old records without batchId remain separate; new submissions group together.
+          const key = item.batchId || `legacy-${item._id || item.id}`;
+          const existing = returnBatches.get(key);
+          if (!existing) {
+            returnBatches.set(key, { ...item, batchRecords: [item] });
+          } else {
+            existing.items += Number(item.items || 0);
+            existing.amount += Number(item.amount || 0);
+            existing.batchRecords.push(item);
+            if (item.createdAt && (!existing.createdAt || new Date(item.createdAt) > new Date(existing.createdAt))) {
+              existing.createdAt = item.createdAt;
+              existing.date = item.date;
+            }
+          }
+        });
+        setReturns(Array.from(returnBatches.values()));
       } catch (error) {
         console.error("Returns API Error:", error);
       }

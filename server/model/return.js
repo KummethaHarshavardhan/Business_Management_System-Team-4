@@ -1,5 +1,7 @@
 import mongoose,{Schema} from 'mongoose'
 const returnSchema = new mongoose.Schema({
+    // Shared by product records submitted together in one return form.
+    batchId: { type: String, index: true },
 
     sale: {
         type: Schema.Types.ObjectId,

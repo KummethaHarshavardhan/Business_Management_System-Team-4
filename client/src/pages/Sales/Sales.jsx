@@ -1,3 +1,4 @@
+
 import { useMemo, useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import "./Sales.css";
@@ -7,40 +8,60 @@ import { getCustomers } from "../../services/customer";
 function Sales() {
   const navigate = useNavigate();
 
-  const [sales,setSales] = useState([]);
-
+  const [sales, setSales] = useState([]);
   const [search, setSearch] = useState("");
   const [status, setStatus] = useState("All Status");
   const [selectedSale, setSelectedSale] = useState(null);
+
+  const getTotalItems = (items) => {
+    if (Array.isArray(items)) {
+      return items.reduce((total, item) => {
+        const quantity = Number(
+          item.quantity ?? item.qty ?? item.returnQuantity ?? 0
+        );
+
+        return total + (Number.isFinite(quantity) ? quantity : 0);
+      }, 0);
+    }
+
+    return Number(items || 0);
+  };
 
   useEffect(() => {
     const fetchSales = async () => {
       try {
         const data = await getSales();
-        const salesData = Array.isArray(data) ? data : data.data || [];
+        const salesData = Array.isArray(data)
+          ? data
+          : data?.data || [];
 
-        // Customer name/phone for the existing UI (sale only stores the customer id)
         let customerMap = {};
+
         try {
           const customerResponse = await getCustomers();
           const customerList = Array.isArray(customerResponse)
             ? customerResponse
-            : customerResponse.data || [];
+            : customerResponse?.data || [];
+
           customerMap = Object.fromEntries(
-            customerList.map((c) => [String(c._id || c.id), c])
+            customerList.map((customer) => [
+              String(customer._id || customer.id),
+              customer,
+            ])
           );
         } catch (customerError) {
           console.error("Customer lookup error:", customerError);
         }
 
-        // Map the Team 4 API sale document to the shape this page already renders
         const formattedSales = salesData.map((sale) => {
           const customerId = String(
             sale.customer?._id || sale.customer || ""
           );
+
           const customer = customerMap[customerId];
           const subtotal = Number(sale.subtotal || 0);
           const discountValue = Number(sale.discount?.value || 0);
+
           const discountAmount =
             sale.discount?.type === "percentage"
               ? (subtotal * discountValue) / 100
@@ -56,9 +77,7 @@ function Sales() {
             date: sale.createdAt
               ? new Date(sale.createdAt).toLocaleDateString("en-IN")
               : "",
-            items: Array.isArray(sale.items)
-              ? sale.items.length
-              : Number(sale.items || 0),
+            items: getTotalItems(sale.items),
             amount: Number(sale.grandTotal ?? sale.amount ?? 0),
             tax: Number(sale.tax || 0),
             discount: discountAmount,
@@ -72,32 +91,23 @@ function Sales() {
     };
 
     fetchSales();
-    }, []);
+  }, []);
 
   const filteredSales = useMemo(() => {
     return sales.filter((sale) => {
       const searchText = search.toLowerCase().trim();
 
       const matchesSearch =
-        String(sale.id || "")
-          .toLowerCase()
-          .includes(searchText) ||
-        String(sale.customer || "")
-          .toLowerCase()
-          .includes(searchText) ||
+        String(sale.id || "").toLowerCase().includes(searchText) ||
+        String(sale.customer || "").toLowerCase().includes(searchText) ||
         String(sale.phone || "").includes(searchText);
 
       const matchesStatus =
-        status === "All Status" ||
-        sale.paymentStatus === status;
+        status === "All Status" || sale.paymentStatus === status;
 
       return matchesSearch && matchesStatus;
     });
   }, [sales, search, status]);
-
-  /* =====================================================
-     ESC KEY
-  ===================================================== */
 
   useEffect(() => {
     if (!selectedSale) {
@@ -116,22 +126,13 @@ function Sales() {
     document.addEventListener("keydown", handleEscape);
 
     return () => {
-      document.removeEventListener(
-        "keydown",
-        handleEscape
-      );
-
+      document.removeEventListener("keydown", handleEscape);
       document.body.style.overflow = "";
     };
   }, [selectedSale]);
 
-  /* =====================================================
-     STATISTICS
-  ===================================================== */
-
   const totalAmount = sales.reduce(
-    (sum, sale) =>
-      sum + Number(sale.amount || 0),
+    (sum, sale) => sum + Number(sale.amount || 0),
     0
   );
 
@@ -143,23 +144,12 @@ function Sales() {
     (sale) => sale.paymentStatus === "Pending"
   ).length;
 
-  /* =====================================================
-     CURRENCY
-  ===================================================== */
-
   const formatCurrency = (amount) => {
-    return `₹${Number(amount || 0).toLocaleString(
-      "en-IN",
-      {
-        minimumFractionDigits: 2,
-        maximumFractionDigits: 2,
-      }
-    )}`;
+    return `₹${Number(amount || 0).toLocaleString("en-IN", {
+      minimumFractionDigits: 2,
+      maximumFractionDigits: 2,
+    })}`;
   };
-
-  /* =====================================================
-     ACTIONS
-  ===================================================== */
 
   const handleNewSale = () => {
     navigate("/sales/new");
@@ -188,19 +178,11 @@ function Sales() {
 
   return (
     <div className="sales-page">
-
-      {/* =====================================================
-          HEADER
-      ===================================================== */}
-
+      {/* HEADER */}
       <div className="sales-header">
-
         <div>
           <h1>Sales</h1>
-
-          <p>
-            View and manage all sales transactions.
-          </p>
+          <p>View and manage all sales transactions.</p>
         </div>
 
         <button
@@ -210,254 +192,126 @@ function Sales() {
         >
           + New Sale
         </button>
-
       </div>
 
-
-      {/* =====================================================
-          STATISTICS
-      ===================================================== */}
-
+      {/* STATISTICS */}
       <div className="sales-stats">
-
         <div className="stat-card">
-
-          <div className="stat-icon purple">
-            ₹
-          </div>
-
+          <div className="stat-icon purple">₹</div>
           <div>
             <span>Total Sales</span>
-
-            <strong>
-              {sales.length}
-            </strong>
+            <strong>{sales.length}</strong>
           </div>
-
         </div>
 
-
         <div className="stat-card">
-
-          <div className="stat-icon green">
-            ₹
-          </div>
-
+          <div className="stat-icon green">₹</div>
           <div>
             <span>Total Amount</span>
-
-            <strong>
-              {formatCurrency(totalAmount)}
-            </strong>
+            <strong>{formatCurrency(totalAmount)}</strong>
           </div>
-
         </div>
 
-
         <div className="stat-card">
-
-          <div className="stat-icon blue">
-            ✓
-          </div>
-
+          <div className="stat-icon blue">✓</div>
           <div>
             <span>Paid Sales</span>
-
-            <strong>
-              {paidSales}
-            </strong>
+            <strong>{paidSales}</strong>
           </div>
-
         </div>
-
 
         <div className="stat-card">
-
-          <div className="stat-icon orange">
-            ◷
-          </div>
-
+          <div className="stat-icon orange">◷</div>
           <div>
             <span>Pending Sales</span>
-
-            <strong>
-              {pendingSales}
-            </strong>
+            <strong>{pendingSales}</strong>
           </div>
-
         </div>
-
       </div>
 
-
-      {/* =====================================================
-          TABLE CARD
-      ===================================================== */}
-
+      {/* SALES TABLE */}
       <div className="sales-table-card">
-
         <div className="sales-toolbar">
-
           <div className="search-box">
-
             <span>⌕</span>
-
             <input
               type="text"
               placeholder="Search sale, customer or phone..."
               value={search}
-              onChange={(e) =>
-                setSearch(e.target.value)
-              }
+              onChange={(e) => setSearch(e.target.value)}
             />
-
           </div>
-
 
           <select
             value={status}
-            onChange={(e) =>
-              setStatus(e.target.value)
-            }
+            onChange={(e) => setStatus(e.target.value)}
           >
-
-            <option value="All Status">
-              All Status
-            </option>
-
-            <option value="Paid">
-              Paid
-            </option>
-
-            <option value="Pending">
-              Pending
-            </option>
-
-            <option value="Partial">
-              Partial
-            </option>
-
+            <option value="All Status">All Status</option>
+            <option value="Paid">Paid</option>
+            <option value="Pending">Pending</option>
+            <option value="Partial">Partial</option>
           </select>
-
         </div>
 
-
-        {/* =====================================================
-            SALES TABLE
-        ===================================================== */}
-
         <div className="table-wrapper">
-
           <table>
-
             <thead>
-
               <tr>
-
                 <th>SALE ID</th>
-
                 <th>CUSTOMER</th>
-
                 <th>MOBILE</th>
-
                 <th>DATE</th>
-
                 <th>ITEMS</th>
-
                 <th>AMOUNT</th>
-
                 <th>PAYMENT</th>
-
                 <th>STATUS</th>
-
                 <th>ACTION</th>
-
               </tr>
-
             </thead>
 
-
             <tbody>
-
               {filteredSales.length > 0 ? (
-
                 filteredSales.map((sale) => (
-
                   <tr key={sale.id}>
-
                     <td>
-
                       <button
                         type="button"
                         className="sale-id"
-                        onClick={() =>
-                          handleViewSale(sale)
-                        }
+                        onClick={() => handleViewSale(sale)}
                       >
                         {sale.id}
                       </button>
-
                     </td>
 
-
                     <td>
-
                       <div className="customer-cell">
-
-                        <strong>
-                          {sale.customer}
-                        </strong>
-
+                        <strong>{sale.customer}</strong>
                       </div>
-
                     </td>
 
-
                     <td>
-
                       <div className="customer-cell">
-
-                        <span>
-                          {sale.phone}
-                        </span>
-
+                        <span>{sale.phone}</span>
                       </div>
-
                     </td>
 
+                    <td>{sale.date}</td>
 
                     <td>
-                      {sale.date}
-                    </td>
-
-
-                    <td>
-
                       <span className="item-badge">
                         {sale.items}
                       </span>
-
                     </td>
 
-
                     <td>
-
                       <strong className="amount">
-                        {formatCurrency(
-                          sale.amount
-                        )}
+                        {formatCurrency(sale.amount)}
                       </strong>
-
                     </td>
 
+                    <td>{sale.paymentMethod}</td>
 
                     <td>
-                      {sale.paymentMethod}
-                    </td>
-
-
-                    <td>
-
                       <span
                         className={`status-badge ${String(
                           sale.paymentStatus || ""
@@ -465,48 +319,26 @@ function Sales() {
                       >
                         {sale.paymentStatus}
                       </span>
-
                     </td>
 
-
                     <td>
-
                       <button
                         type="button"
                         className="view-btn"
-                        onClick={() =>
-                          handleViewSale(sale)
-                        }
+                        onClick={() => handleViewSale(sale)}
                       >
                         View
                       </button>
-
                     </td>
-
                   </tr>
-
                 ))
-
               ) : (
-
                 <tr>
-
                   <td colSpan="9">
-
                     <div className="empty-state">
-
-                      <div className="empty-icon">
-                        ▤
-                      </div>
-
-                      <h3>
-                        No sales found
-                      </h3>
-
-                      <p>
-                        Try changing your search
-                        or filter.
-                      </p>
+                      <div className="empty-icon">▤</div>
+                      <h3>No sales found</h3>
+                      <p>Try changing your search or filter.</p>
 
                       <button
                         type="button"
@@ -515,62 +347,31 @@ function Sales() {
                       >
                         Reset Filters
                       </button>
-
                     </div>
-
                   </td>
-
                 </tr>
-
               )}
-
             </tbody>
-
           </table>
-
         </div>
-
       </div>
 
-
-      {/* =====================================================
-          SALE DETAILS MODAL
-      ===================================================== */}
-
+      {/* SALE DETAILS MODAL */}
       {selectedSale && (
-
         <div
           className="sale-modal-overlay"
           onClick={closeSaleDetails}
         >
-
           <div
             className="sale-modal"
-            onClick={(e) =>
-              e.stopPropagation()
-            }
+            onClick={(e) => e.stopPropagation()}
           >
-
-            {/* MODAL HEADER */}
-
             <div className="sale-modal-header">
-
               <div>
-
-                <span className="modal-label">
-                  SALE DETAILS
-                </span>
-
-                <h2>
-                  {selectedSale.id}
-                </h2>
-
-                <p>
-                  Sale transaction details
-                </p>
-
+                <span className="modal-label">SALE DETAILS</span>
+                <h2>{selectedSale.id}</h2>
+                <p>Sale transaction details</p>
               </div>
-
 
               <button
                 type="button"
@@ -580,72 +381,32 @@ function Sales() {
               >
                 ×
               </button>
-
             </div>
 
-
             {/* CUSTOMER DETAILS */}
-
             <div className="sale-detail-grid">
-
               <div className="detail-box">
-
-                <span>
-                  Customer
-                </span>
-
-                <strong>
-                  {selectedSale.customer}
-                </strong>
-
+                <span>Customer</span>
+                <strong>{selectedSale.customer}</strong>
               </div>
 
-
               <div className="detail-box">
-
-                <span>
-                  Mobile
-                </span>
-
-                <strong>
-                  {selectedSale.phone}
-                </strong>
-
+                <span>Mobile</span>
+                <strong>{selectedSale.phone}</strong>
               </div>
 
-
               <div className="detail-box">
-
-                <span>
-                  Sale Date
-                </span>
-
-                <strong>
-                  {selectedSale.date}
-                </strong>
-
+                <span>Sale Date</span>
+                <strong>{selectedSale.date}</strong>
               </div>
 
-
               <div className="detail-box">
-
-                <span>
-                  Payment Method
-                </span>
-
-                <strong>
-                  {selectedSale.paymentMethod}
-                </strong>
-
+                <span>Payment Method</span>
+                <strong>{selectedSale.paymentMethod}</strong>
               </div>
 
-
               <div className="detail-box">
-
-                <span>
-                  Payment Status
-                </span>
-
+                <span>Payment Status</span>
                 <span
                   className={`status-badge ${String(
                     selectedSale.paymentStatus || ""
@@ -653,125 +414,61 @@ function Sales() {
                 >
                   {selectedSale.paymentStatus}
                 </span>
-
               </div>
-
             </div>
 
-
             {/* SALE SUMMARY */}
-
             <div className="sale-items-section">
-
               <div className="section-heading">
-
-                <h3>
-                  Sale Summary
-                </h3>
-
-                <span>
-                  {selectedSale.items} Items
-                </span>
-
+                <h3>Sale Summary</h3>
+                <span>{selectedSale.items} Items</span>
               </div>
 
-
               <div className="sale-item-row">
-
                 <div>
-
-                  <strong>
-                    Products
-                  </strong>
-
+                  <strong>Products</strong>
                   <span>
-                    {selectedSale.items} products
-                    included in this sale
+                    {selectedSale.items} items included in this sale
                   </span>
-
                 </div>
 
                 <strong>
-                  {formatCurrency(
-                    selectedSale.amount
-                  )}
+                  {formatCurrency(selectedSale.amount)}
                 </strong>
-
               </div>
-
             </div>
-
 
             {/* CALCULATIONS */}
-
             <div className="sale-calculation">
-
               <div>
-
-                <span>
-                  Subtotal
-                </span>
-
+                <span>Subtotal</span>
                 <strong>
-                  {formatCurrency(
-                    getSubtotal(selectedSale)
-                  )}
+                  {formatCurrency(getSubtotal(selectedSale))}
                 </strong>
-
               </div>
 
-
               <div>
-
-                <span>
-                  Discount
-                </span>
-
+                <span>Discount</span>
                 <strong className="discount-text">
-                  -{formatCurrency(
-                    selectedSale.discount
-                  )}
+                  -{formatCurrency(selectedSale.discount)}
                 </strong>
-
               </div>
-
 
               <div>
-
-                <span>
-                  Tax
-                </span>
-
-                <strong>
-                  {formatCurrency(
-                    selectedSale.tax
-                  )}
-                </strong>
-
+                <span>Tax</span>
+                <strong>{formatCurrency(selectedSale.tax)}</strong>
               </div>
-
 
               <div className="grand-total-row">
-
-                <span>
-                  Grand Total
-                </span>
-
+                <span>Grand Total</span>
                 <strong>
-                  {formatCurrency(
-                    selectedSale.amount
-                  )}
+                  {formatCurrency(selectedSale.amount)}
                 </strong>
-
               </div>
-
             </div>
 
-
-            {/* SALES FOOTER */}
-
+            {/* FOOTER */}
             <div className="sale-modal-footer">
-
               <button
                 type="button"
                 className="secondary-modal-btn"
@@ -779,15 +476,10 @@ function Sales() {
               >
                 Close
               </button>
-
             </div>
-
           </div>
-
         </div>
-
       )}
-
     </div>
   );
 }

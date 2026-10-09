@@ -11,8 +11,7 @@ const invoiceSchema = new mongoose.Schema(
         sale: {
             type: Schema.Types.ObjectId,
             ref: 'Sale',
-            required: true,
-            unique: true
+            required: true
         },
 
         invoiceDate: {
@@ -65,7 +64,14 @@ const invoiceSchema = new mongoose.Schema(
         },
         paymentStatus: {
             type: String,
-            required: true
+            enum: ['Paid', 'Pending', 'Partial'],
+            required: true,
+            default: 'Pending'
+        },
+        paidAmount: {
+            type: Number,
+            min: 0,
+            default: 0
         },
     },
     { timestamps: true }

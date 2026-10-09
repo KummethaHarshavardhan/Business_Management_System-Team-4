@@ -6,7 +6,7 @@ import { getProduct } from '../services/stockService.js'
 
 export const createReturn = async (req, res) => {
   try {
-    const { saleId, productId, quantityReturned, reason } = req.body;
+    const { saleId, productId, quantityReturned, reason, batchId } = req.body;
 
     if (!mongoose.isValidObjectId(saleId) || !mongoose.isValidObjectId(productId)) {
       return res.status(400).json({ message: 'Valid saleId and productId are required' });
@@ -50,6 +50,7 @@ export const createReturn = async (req, res) => {
       product: productId,
       quantityReturned,
       reason,
+      ...(typeof batchId === 'string' && batchId.trim() ? { batchId: batchId.trim() } : {}),
     });
 
     return res.status(201).json(newReturn);

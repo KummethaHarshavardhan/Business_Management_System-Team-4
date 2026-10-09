@@ -57,19 +57,11 @@ export const createInvoice = async (req, res) => {
       grandTotal: sale.grandTotal,
       paymentMethod: sale.paymentMethod,
       paymentStatus: sale.paymentStatus,
+      paidAmount: sale.paymentStatus === 'Paid' ? sale.grandTotal : 0,
     });
 
     return res.status(201).json(invoice);
   } catch (error) {
-    // The unique sale index also protects against two requests racing to create
-    // an invoice for the same sale. Return a conflict instead of a generic 500.
-    if (error?.code === 11000 && error?.keyPattern?.sale) {
-      const existing = await Invoice.findOne({ sale: req.body.saleId }).catch(() => null);
-      return res.status(409).json({
-        message: 'Invoice already exists for this sale',
-        ...(existing ? { invoice: existing } : {}),
-      });
-    }
     return res.status(500).json({ message: error.message });
   }
 };
@@ -103,6 +95,55 @@ export const getInvoices = async (req, res) => {
 
     const invoices = await Invoice.find(filter).sort({ createdAt: -1 });
     return res.json(invoices);
+  } catch (error) {
+    return res.status(500).json({ message: error.message });
+  }
+};
+
+
+
+export const updateInvoicePaymentStatus = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { paymentStatus, paidAmount } = req.body;
+    const allowedStatuses = ['Pending', 'Partial', 'Paid'];
+
+    if (!mongoose.isValidObjectId(id)) {
+      return res.status(400).json({ message: 'Invalid invoice id' });
+    }
+    if (!allowedStatuses.includes(paymentStatus)) {
+      return res.status(400).json({ message: 'Payment status must be Pending, Partial, or Paid' });
+    }
+
+    const invoice = await Invoice.findById(id);
+    if (!invoice) return res.status(404).json({ message: 'Invoice not found' });
+
+    const total = Number(invoice.grandTotal || 0);
+    let received = 0;
+    if (paymentStatus === 'Paid') {
+      received = total;
+    } else if (paymentStatus === 'Partial') {
+      received = Number(paidAmount);
+      if (!Number.isFinite(received) || received <= 0 || received >= total) {
+        return res.status(400).json({ message: `For Partial status, amount received must be greater than 0 and less than ${total}` });
+      }
+    }
+
+    invoice.paymentStatus = paymentStatus;
+    invoice.paidAmount = received;
+    await invoice.save();
+
+    // Keep the original sale's payment status in sync with its invoice.
+    if (invoice.sale) {
+      await Sale.findByIdAndUpdate(invoice.sale, { paymentStatus });
+    }
+
+    return res.json({
+      message: 'Invoice payment status updated successfully',
+      invoice,
+      paidAmount: received,
+      balanceDue: Math.max(0, total - received),
+    });
   } catch (error) {
     return res.status(500).json({ message: error.message });
   }

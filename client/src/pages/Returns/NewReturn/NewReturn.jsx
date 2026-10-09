@@ -5,7 +5,7 @@ import "./NewReturn.css";
 import { getInvoices } from "../../../services/invoice";
 import { getProducts } from "../../../services/product";
 import { getSales } from "../../../services/sales";
-import { createReturn } from "../../../services/return";
+import { createReturn, getReturns } from "../../../services/return";
 
 function NewReturn() {
   const navigate = useNavigate();
@@ -28,6 +28,7 @@ function NewReturn() {
   const [invoiceData, setInvoiceData] = useState([]);
   const [productsData, setProductsData] = useState([]);
   const [salesData, setSalesData] = useState([]);
+  const [returnsData, setReturnsData] = useState([]);
 
   const [invoiceId, setInvoiceId] = useState("");
   const [returnDate, setReturnDate] = useState("");
@@ -42,11 +43,12 @@ function NewReturn() {
     useEffect(() => {
     const fetchData = async () => {
       try {
-        const [invoiceResponse, salesResponse, productResponse] =
+        const [invoiceResponse, salesResponse, productResponse, returnsResponse] =
           await Promise.all([
             getInvoices(),
             getSales(),
             getProducts(),
+            getReturns(),
           ]);
 
         const invoiceList = Array.isArray(invoiceResponse)
@@ -60,10 +62,14 @@ function NewReturn() {
         const productList = Array.isArray(productResponse)
           ? productResponse
           : productResponse.data || [];
+        const returnsList = Array.isArray(returnsResponse)
+          ? returnsResponse
+          : returnsResponse.data || [];
 
         setInvoiceData(invoiceList);
         setSalesData(salesList);
         setProductsData(productList);
+        setReturnsData(returnsList);
       } catch (error) {
         console.error("New Return API Error:", error);
       }
@@ -126,6 +132,13 @@ function NewReturn() {
           productDetails?.productCode ||
           "—",
         soldQty: Number(item.quantity || 0),
+        alreadyReturnedQty: returnsData
+          .filter((returned) =>
+            String(returned.sale?._id || returned.sale) === String(selectedSale._id) &&
+            String(returned.product?._id || returned.product) === String(productId) &&
+            (returned.status || "Completed") === "Completed"
+          )
+          .reduce((sum, returned) => sum + Number(returned.quantityReturned || 0), 0),
         unitPrice: Number(
           item.price ||
             item.unitPrice ||
@@ -135,8 +148,11 @@ function NewReturn() {
             0
         ),
       };
-    });
-  }, [selectedSale, productsData]);
+    }).map((product) => ({
+      ...product,
+      remainingQty: Math.max(0, product.soldQty - product.alreadyReturnedQty),
+    }));
+  }, [selectedSale, productsData, returnsData]);
 
   const totalItems = Object.values(returnQuantities).reduce(
     (total, quantity) => {
@@ -194,7 +210,7 @@ function NewReturn() {
 
     const safeQuantity = Math.min(
       Math.floor(quantity),
-      Number(product.soldQty || 0)
+      Number(product.remainingQty || 0)
     );
 
     setReturnQuantities((current) => ({
@@ -216,7 +232,7 @@ function NewReturn() {
 
     if (
       currentQuantity >=
-      Number(product.soldQty || 0)
+      Number(product.remainingQty || 0)
     ) {
       return;
     }
@@ -308,6 +324,9 @@ function NewReturn() {
       // The Return model stores one product per document, so create one
       // backend return record for each selected product. Only real MongoDB
       // Sale/Product IDs are sent; returned stock is never changed here.
+      // All product records created by this form share one batch ID, so the
+      // Returns list can show their combined quantity as one return request.
+      const batchId = globalThis.crypto?.randomUUID?.() || `return-${Date.now()}-${Math.random().toString(36).slice(2)}`;
       await Promise.all(
         selectedProducts.map((product) =>
           createReturn({
@@ -315,6 +334,7 @@ function NewReturn() {
             productId: product.id,
             quantityReturned: Number(returnQuantities[product.id]),
             reason: returnReason,
+            batchId,
           })
         )
       );
@@ -672,7 +692,7 @@ function NewReturn() {
                             <td>
 
                               <span className="sold-quantity">
-                                {product.soldQty}
+                                {product.soldQty} <small>(Remaining: {product.remainingQty})</small>
                               </span>
 
                             </td>
@@ -699,7 +719,7 @@ function NewReturn() {
                                   type="number"
                                   min="0"
                                   max={
-                                    product.soldQty
+                                    product.remainingQty
                                   }
                                   value={
                                     returnQuantities[
@@ -724,7 +744,7 @@ function NewReturn() {
                                   disabled={
                                     quantity >=
                                     Number(
-                                      product.soldQty || 0
+                                      product.remainingQty || 0
                                     )
                                   }
                                 >
