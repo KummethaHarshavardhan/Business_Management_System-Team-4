@@ -61,6 +61,15 @@ export const createInvoice = async (req, res) => {
 
     return res.status(201).json(invoice);
   } catch (error) {
+    // The unique sale index also protects against two requests racing to create
+    // an invoice for the same sale. Return a conflict instead of a generic 500.
+    if (error?.code === 11000 && error?.keyPattern?.sale) {
+      const existing = await Invoice.findOne({ sale: req.body.saleId }).catch(() => null);
+      return res.status(409).json({
+        message: 'Invoice already exists for this sale',
+        ...(existing ? { invoice: existing } : {}),
+      });
+    }
     return res.status(500).json({ message: error.message });
   }
 };
